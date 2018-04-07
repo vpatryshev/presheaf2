@@ -1,0 +1,148 @@
+<html lang="en" xmlns:fb="https://www.facebook.com/2008/fbml">
+<head>
+    <meta charset="utf-8"/>
+    <title>Here's your diagram</title>
+    <link href='http://fonts.googleapis.com/css?family=Nunito:300' rel='stylesheet' type='text/css'>
+    <link rel=StyleSheet type="text/css" href="static/1.css">
+</head>
+<body>
+<div id="fullBody">
+    <script language="javascript" src="static/md5.js"></script>
+    <script language="javascript" src="static/presheaf.js"></script>
+    <div id="titlebar">
+        <table width="100%">
+            <tr>
+                <td>
+                    <h1 id="d_status">Diagram Renderer</h1>
+                </td>
+                <td align="right">
+                    <div id="login">
+                        <fb:login-button
+                                scope="public_profile,email"
+                                auth_type="rerequest"
+                                onlogin="checkLoginState();">
+                        </fb:login-button>
+                    </div>
+                    <div id="logout" style="visibility: hidden">
+                        <div id="username"></div>
+                        <button type='button' onclick='logout()'>log out</button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="main">
+        <!--<h1>ALT</h1>-->
+        <!--<form id="gsf" method="GET" action="https://www.facebook.com/v2.12/dialog/oauth">-->
+        <!--<input type=hidden name=client_id value="1784536835187521">-->
+        <!--<input type=hidden name=scope value="email,public_profile">-->
+        <!--<input type=hidden name=redirect_uri value="https://presheaf.com">-->
+        <!--<input id="gsm" type=submit value=submit>-->
+        <!--</form>-->
+        <input type="hidden" name="auth_type" value="rerequest">
+        <input type=hidden name=grant_type value=client_credentials>
+
+        <div id="history">
+        </div>
+        <div id="textDiv">
+            <form>
+                <table>
+                    <tr>
+                        <td>
+                            <textarea cols="120" id="d_in" name="in" rows="15">X \ar@/_2pc/[rr]_{f;g} \ar[r]^f &amp;Y \ar[r]^g &amp;Z\</textarea>
+                        </td>
+                        <td>
+                            <select id="d_format" name="format" style="visibility:hidden">
+                                <option value="xy">xypic</option>
+                                <option value="graph">graph</option>
+                                <option value="guess">ascii art</option>
+                            </select><br>
+                            <input type="button" value="Render" onclick="commit()"/><br/>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+            <span id="d_error" style="color:red"></span>
+            <span id="d_results" style="display:none">
+              <p><b id="d_txt"></b></p>
+              <p><img id="d_png"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  <a id="d_pdf">pdf</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  <textarea cols="20" rows="4" readonly="readonly" id="d_quote"></textarea>
+              </p>
+                    <object id="d_pdf_o" data="?" type="application/pdf">
+                        <embed id="d_pdf_e" src="?" type="application/pdf"></embed>
+                    </object>
+
+                <p></p>
+            </span>
+            <br/>
+            Questions? <a href="mail:vpatryshev@gmail.com">ask me...</a> or see<br/>
+            <a href="http://ctan.org/tex-archive/macros/generic/diagrams/xypic/xy/doc/xyguide.pdf">xy guide</a>,<br/>
+            <a href="http://paws.wcu.edu/tsfoguel/tikzpgfmanual.pdf">tikz manual</a>,<br/>
+            <a href="http://www.texample.net/tikz/examples/">tikz examples</a>,
+            .<br/><br/><br/>
+            <font size="-2">Ver. <span id="d_version">h.z.</span> Copyright (c) 2010-3010, Vlad Patryshev.</font><br/>
+
+        </div>
+
+        <div id="imageView"></div>
+    </div>
+    <div id="samples0"></div>
+    <div id="samples1"></div>
+
+</div>
+
+<script>
+          
+  const showUser = (userinfo) => {
+    console.log(JSON.stringify(userinfo))
+    userid = b64_md5(userinfo.id) + ".FB"
+    _("username").innerHTML = userinfo.name
+    hide("login")
+    show("logout")
+  }
+               
+  const onLogin = (r) => {
+    console.log(JSON.stringify(r))
+    if (r.status === 'connected') FB.api('/me', showUser)
+  }
+
+  const checkLoginState = () => FB.getLoginStatus(onLogin);
+
+
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '1784536835187521',
+      cookie     : true,
+      xfbml      : true,
+      version    : 'v2.12'
+    });
+      
+    FB.AppEvents.logPageView();   
+      
+    checkLoginState()
+
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "https://connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+            
+  var userid = undefined
+            
+  const logout = () => {
+    hide("logout")
+    show("login")
+    _("username").innerHTML = undefined
+    userid = undefined
+    FB.logout()
+  }
+
+</script>
+
+</body>
+</html>
