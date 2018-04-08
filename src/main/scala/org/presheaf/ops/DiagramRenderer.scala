@@ -1,9 +1,7 @@
 package org.presheaf.ops
 
 import java.io.{IOException, File, FileOutputStream}
-
-import collection.mutable.ListBuffer
-import Diagram._
+import OS._
 
 /**
  * xypic Diagram Renderer
@@ -21,10 +19,10 @@ case class DiagramRenderer(cache: File) {
     val allLines = code match {
       case 0 => Nil
       case _       => 
-        wrap(action, "<code>>%s</code>")::
+//        wrap(action, "<code>>%s</code>")::
 //        wrap(code, "result = %d")::
-        wrap(log, "log = %s")::
-        wrap(err, "<font color='red'>err = %s</font>")::
+        wrap(log, "%s")::
+        wrap(err, "<font color='red'>%s</font>")::
         Nil
     }
     val html = allLines filter(_.nonEmpty) mkString("<p>", "</p>\n<p>", "</p>")
@@ -79,7 +77,7 @@ case class DiagramRenderer(cache: File) {
     val img: File = withExtension(file, "png")
     val pdf: File = withExtension(file, "pdf")
 
-    val command  = "sh /home/ubuntu/doit.sh "  + name
+    val command  = s"sh $homeDir/doit.sh $name"
     // TODO: figure out wtf I transform an option to a tuple. it's wrong!
     runM(command) match {
       case (0, _) =>
