@@ -7,9 +7,9 @@ case class Diagram(
               source: String,
               img: File,
               pdf: File,
-              log: Iterable[String] = Nil) {
+              log: String = "") {
   override def toString: String =
-    s"Diagram($id, $source, $img, $pdf, ${log.mkString("\n")})"
+    s"Diagram($id, $source, $img, $pdf, $log)"
 }
 
 object Diagram {

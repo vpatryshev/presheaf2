@@ -3,41 +3,41 @@
     <meta charset="utf-8"/>
     <title>Here's your diagram</title>
     <link href='http://fonts.googleapis.com/css?family=Nunito:300' rel='stylesheet' type='text/css'>
-    <link rel=StyleSheet type="text/css" href="1.css">
+    <link rel=StyleSheet type="text/css" href="static/1.css">
 </head>
 <body>
-  <div id="fullBody">
-    <script language="javascript" src="md5.js"></script>
-    <script language="javascript" src="huipresheaf.js"></script>
+<div id="fullBody">
+    <script language="javascript" src="static/md5.js"></script>
+    <script language="javascript" src="static/huipresheaf.js"></script>
     <div id="titlebar">
-      <table width="100%">
-        <tr>
-          <td>
-            <h1 id="d_status">Diagram Renderer</h1>
-          </td>
-          <td align="right">
-            <div id="login">
-              <fb:login-button
-                scope="public_profile,email"
-                auth_type="rerequest"
-                onlogin="checkLoginState();">
-              </fb:login-button>
-            </div>
-            <div id="logout" style="visibility: hidden">
-              <div id="username"></div>
-              <button type='button' onclick='logout()'>log out</button>
-            </div>
-          </td>
-        </tr>
-      </table>
+        <table width="100%">
+            <tr>
+                <td>
+                    <h1 id="d_status">Diagram Renderer</h1>
+                </td>
+                <td align="right">
+                    <div id="login">
+                        <fb:login-button
+                                scope="public_profile,email"
+                                auth_type="rerequest"
+                                onlogin="checkLoginState();">
+                        </fb:login-button>
+                    </div>
+                    <div id="logout" style="visibility: hidden">
+                        <div id="username"></div>
+                        <button type='button' onclick='logout()'>log out</button>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
     <div id="main">
         <!--<h1>ALT</h1>-->
         <!--<form id="gsf" method="GET" action="https://www.facebook.com/v2.12/dialog/oauth">-->
-            <!--<input type=hidden name=client_id value="1784536835187521">-->
-            <!--<input type=hidden name=scope value="email,public_profile">-->
-            <!--<input type=hidden name=redirect_uri value="https://presheaf.com">-->
-            <!--<input id="gsm" type=submit value=submit>-->
+        <!--<input type=hidden name=client_id value="1784536835187521">-->
+        <!--<input type=hidden name=scope value="email,public_profile">-->
+        <!--<input type=hidden name=redirect_uri value="https://presheaf.com">-->
+        <!--<input id="gsm" type=submit value=submit>-->
         <!--</form>-->
         <input type="hidden" name="auth_type" value="rerequest">
         <input type=hidden name=grant_type value=client_credentials>
@@ -65,7 +65,7 @@
             <span id="d_error" style="color:red"></span>
             <span id="d_results" style="display:none">
               <p><b id="d_txt"></b></p>
-              <p><img src="?" id="d_png"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              <p><img id="d_png"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                   <a id="d_pdf">pdf</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                   <textarea cols="20" rows="4" readonly="readonly" id="d_quote"></textarea>
               </p>
@@ -89,7 +89,7 @@
     </div>
     <div id="samples0"></div>
     <div id="samples1"></div>
-      
+
 </div>
 
 <script>

@@ -1,9 +1,6 @@
 /**
  * Functionality for presheaf.com
- * @author Vlad Patryshev
- * 3/16/2018
  */
-
 const _ = (id) => document.getElementById(id) 
 
 const skip = () => {}
@@ -223,12 +220,16 @@ function send(input, format) {
       },
       (text) => {
         console.log("Got response <<<" + text + ">>>")
-        var response = eval("(" + text + ")")
-        if (response.error) {
-          error("Error: " + response.error)
-        } else {
-          response.image = newImage(response.id)
-          response.image.onload = () => showDiagram(response, input)
+        try {
+          let response = JSON.parse(text)
+          if (response.error) {
+            error("Error: " + response.error)
+          } else {
+            response.image = newImage(response.id)
+            response.image.onload = () => showDiagram(response, input)
+          }
+        } catch (e) {
+          error("error: " + e)
         }
       },
       error
@@ -297,12 +298,10 @@ function fillIn() {
         try {
           fillSamples(JSON.parse(text))
         } catch(e) {
-          error(e)
+          error("exception: " + e + "\n" + text)
         }
       },
-      function(msg) {
-        error(msg)
-      }
+      error
   )
 }
 

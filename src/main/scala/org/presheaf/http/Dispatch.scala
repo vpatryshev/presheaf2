@@ -8,13 +8,18 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.util.Timeout
-import StatusCodes.SeeOther
+import org.presheaf.ops.{Diagram, DiagramSamples, PresheafOps}
 
 import scala.concurrent.duration._
 import org.presheaf.ops.OS._
 
 trait Dispatch {
   val cacheDir: File = new File(homeDir, "cache")
+  
+  val ops = new PresheafOps {
+    val cache = cacheDir
+  }
+  
   
   // we leave these abstract, since they will be provided by the App
   implicit def system: ActorSystem
@@ -25,10 +30,11 @@ trait Dispatch {
   implicit lazy val timeout: Timeout = Timeout(10.seconds) // usually we'd obtain the timeout from the system's configuration
 
   val static: Route =
-    (get & path("")){
-      (pathEndOrSingleSlash & redirectToTrailingSlashIfMissing(SeeOther)) {
+    (get & path("")) {
+      pathEndOrSingleSlash {
         getFromResource("static/index.html")
-      } ~ {
+      }
+    } ~ (get & pathPrefix("static")) {{
         getFromResourceDirectory("static")
       }
     }  
@@ -37,21 +43,26 @@ trait Dispatch {
     getFromDirectory(cacheDir.getAbsolutePath)
   }
 
-  val webService: Route = (get & path("dws")) {
+  val service: Route = (get & path("dws")) {
     parameter("op") { 
       op =>
         if (op == "samples") {
           println(s"OK, we got an operation <<$op>>")
-          getFromResource("samples.txt")
+          val rendered = DiagramSamples.samples map ops.produce
+          
+          complete(StatusCodes.OK, rendered.mkString("[", ",\n", "]"))
+
         } else {
           complete((StatusCodes.BadRequest, s"Unknown op <<$op>>"))
         }
     } ~
     parameter("format", "in") { (format, in) =>
       println(s"OK, we got format=$format, in=$in")
-      complete((StatusCodes.OK, s"OK, we got format=$format, in=$in"))
+      val json = ops.produce(in)
+      complete((StatusCodes.OK, json))
     }
   }
 
-  lazy val routes: Route = cache ~ webService ~ static
+  lazy val routes: Route = static ~ cache ~ service
+
 }

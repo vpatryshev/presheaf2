@@ -297,7 +297,7 @@ function fillIn() {
         try {
           fillSamples(JSON.parse(text))
         } catch(e) {
-          error(e)
+          error("exception: " + e)
         }
       },
       function(msg) {

@@ -13,22 +13,28 @@ case class DiagramRenderer(cache: File) {
   require(cache.exists, "Server error, cache directory missing " + cache.getAbsolutePath)
   require(cache.isDirectory, "Server error, check cache directory " + cache.getAbsolutePath)
 
-  def toHtml(action: (String, String), results: (Int, String, String)): Seq[String] = {
-    results._1 match {
+  def wrap(what: Any, fmt: String): String =
+    if (what.toString.isEmpty) "" else fmt.format(what)
+  
+  def explain(action: String, results: (Int, String, String)): String = {
+    val (code, log, err) = results
+    val allLines = code match {
       case 0 => Nil
       case _       => 
-        s"""<p>${ action._1 } = "${ action._2 }"</p>"""::
-        s"""<p>result = ${results._1 }</p>"""::
-        s"""<p>log = ${results._2}</p>"""::
-        s"""<p><font color="red">err = ${results._3}</font></p>"""::
+        wrap(action, "<code>>%s</code>")::
+//        wrap(code, "result = %d")::
+        wrap(log, "log = %s")::
+        wrap(err, "<font color='red'>err = %s</font>")::
         Nil
     }
+    val html = allLines filter(_.nonEmpty) mkString("<p>", "</p>\n<p>", "</p>")
+    html
   }
 
-  def runM(action: (String, String), logs: ListBuffer[String], env: Map[String, String] = Map.empty): Int = {
-    val results = OS.run(action._2)
-    logs ++= toHtml(action, results)
-    results._1
+  def runM(action: String): (Int, String) = {
+    val results = OS.run(action)
+    val log = explain(action, results)
+    (results._1, log)
   }
 
   def withExtension(file: File, extension: String): File = {
@@ -59,7 +65,6 @@ case class DiagramRenderer(cache: File) {
   }
 
   def doWithScript(source: String, name: String): Diagram = {
-    val log = new ListBuffer[String]
     val file = diagramFile(name)
     val src: File = withExtension(file, "src")
     try {
@@ -69,20 +74,20 @@ case class DiagramRenderer(cache: File) {
     } catch {
       case ioe: IOException => 
         println(s"Got an $ioe while trying to write to $src - $source")
-        log += "<p>Diagram already in the system, can't override</p>"
+//        log = "<p>Diagram already in the system, can't override</p>"
     }
     val img: File = withExtension(file, "png")
     val pdf: File = withExtension(file, "pdf")
 
     val command  = "sh /home/ubuntu/doit.sh "  + name
     // TODO: figure out wtf I transform an option to a tuple. it's wrong!
-    runM("doit.sh" -> command, log) match {
-      case 0 =>
+    runM(command) match {
+      case (0, _) =>
         println("\n------OK-------")
-        new Diagram(name, source, img, pdf)
-      case otherwise =>
-        println(s"\n------OOPS $otherwise-------\n${log.mkString("\n")}")
-        new Diagram(name, source, img, pdf, log)
+        Diagram(name, source, img, pdf)
+      case (otherwise, log) =>
+        println(s"\n------OOPS $otherwise-------\n$log")
+        Diagram(name, source, img, pdf, log)
     }
   }
 }
