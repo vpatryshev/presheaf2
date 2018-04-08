@@ -45,10 +45,9 @@ trait PresheafOps {
     DiagramRenderer(cache).process(diagram)
   }
 
-
   def produce(diagram:String): String = {
     val d = process(diagram)
-    json(
+    val out = json(
       if (d.log.isEmpty) {
         Map(
           "id"      -> d.id,
@@ -59,6 +58,7 @@ trait PresheafOps {
         errorLog(d.log)
       }
     )
+    out
   }
 
 }

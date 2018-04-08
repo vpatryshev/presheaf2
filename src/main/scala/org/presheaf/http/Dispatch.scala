@@ -16,30 +16,28 @@ import org.presheaf.ops.OS._
 trait Dispatch {
   val cacheDir: File = new File(homeDir, "cache")
   
-  val ops = new PresheafOps {
-    val cache = cacheDir
+  private val ops = new PresheafOps {
+    val cache: File = cacheDir
   }
-  
   
   // we leave these abstract, since they will be provided by the App
   implicit def system: ActorSystem
 
   lazy val log = Logging(system, classOf[Dispatch])
 
-  // Required by the `ask` (?) method below
-  implicit lazy val timeout: Timeout = Timeout(10.seconds) // usually we'd obtain the timeout from the system's configuration
+//  // Required by the `ask` (?) method below
+//  implicit lazy val timeout: Timeout = Timeout(10.seconds) // usually we'd obtain the timeout from the system's configuration
 
-  val static: Route =
+  val staticFiles: Route =
     (get & path("")) {
       pathEndOrSingleSlash {
         getFromResource("static/index.html")
       }
-    } ~ (get & pathPrefix("static")) {{
+    } ~ (get & pathPrefix("static")) {
         getFromResourceDirectory("static")
-      }
     }  
   
-  val cache: Route = (get & pathPrefix("cache")) {
+  val cachedFiles: Route = (get & pathPrefix("cache")) {
     getFromDirectory(cacheDir.getAbsolutePath)
   }
 
@@ -55,14 +53,13 @@ trait Dispatch {
         } else {
           complete((StatusCodes.BadRequest, s"Unknown op <<$op>>"))
         }
-    } ~
-    parameter("format", "in") { (format, in) =>
+    } ~ parameter("format", "in") { (format, in) =>
       println(s"OK, we got format=$format, in=$in")
       val json = ops.produce(in)
       complete((StatusCodes.OK, json))
     }
   }
 
-  lazy val routes: Route = static ~ cache ~ service
+  lazy val routes: Route = staticFiles ~ cachedFiles ~ service
 
 }

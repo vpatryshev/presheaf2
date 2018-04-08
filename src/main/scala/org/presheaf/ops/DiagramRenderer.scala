@@ -19,13 +19,13 @@ case class DiagramRenderer(cache: File) {
     val allLines = code match {
       case 0 => Nil
       case _       => 
-//        wrap(action, "<code>>%s</code>")::
-//        wrap(code, "result = %d")::
-        wrap(log, "%s")::
+        wrap(action, "<code>>%s</code>")::
+        wrap(code, "result = %d")::
+//        wrap(log, "%s")::
         wrap(err, "<font color='red'>%s</font>")::
         Nil
     }
-    val html = allLines filter(_.nonEmpty) mkString("<p>", "</p>\n<p>", "</p>")
+    val html = wrap(allLines filter(_.nonEmpty) mkString("</p>\n<p>"), "<p>$s</p>")
     html
   }
 
@@ -47,45 +47,44 @@ case class DiagramRenderer(cache: File) {
   def idFor(tex: String): String = "d" + DiagramRenderer.md5(tex)
 
   def diagramFile(name: String): File = {
-    new File(cache, name + ".tex")
+    new File(cache, name)
   }
 
-  def process(sourceDiagram: String) : Diagram = {
-      OS.log("decoded '" + sourceDiagram + "' to '" + sourceDiagram + "'")
-      val id = idFor(sourceDiagram)
-      val img: File = new File(cache, id + ".png")
-      val pdf: File = new File(cache, id + ".pdf")
+  def process(source: String) : Diagram = {
+      OS.log("decoded '" + source + "' to '" + source + "'")
+      val id = idFor(source)
+      val img: File = diagramFile("$id.png")
+      val pdf: File = diagramFile("$id.pdf")
+      val diagram = new Diagram(id, source, img, pdf)
       val result =
-          if (img.exists) new Diagram(id, sourceDiagram, img, pdf)
-          else             doWithScript(sourceDiagram, id)
+          if (diagram.inCache) diagram
+          else             doWithScript(diagram)
       OS.log(s"Renderer.process: $result.")
       result
   }
 
-  def doWithScript(source: String, name: String): Diagram = {
-    val file = diagramFile(name)
-    val src: File = withExtension(file, "src")
+  def doWithScript(diagram: Diagram): Diagram = {
+    val id = diagram.id
+    val source = diagram.source
+    val src = diagramFile(s"$id.src")
     try {
       val srcFile = new FileOutputStream(src)
       srcFile.write(source.getBytes)
       srcFile.close()
+      println(s"got $source")
     } catch {
-      case ioe: IOException => 
-        println(s"Got an $ioe while trying to write to $src - $source")
-//        log = "<p>Diagram already in the system, can't override</p>"
+      case x: Exception => 
+        println(s"Got an $x while trying to write to $src - $source")
     }
-    val img: File = withExtension(file, "png")
-    val pdf: File = withExtension(file, "pdf")
 
-    val command  = s"sh $homeDir/doit.sh $name"
-    // TODO: figure out wtf I transform an option to a tuple. it's wrong!
+    val command  = s"sh $homeDir/presheaf.sh $id"
     runM(command) match {
       case (0, _) =>
         println("\n------OK-------")
-        Diagram(name, source, img, pdf)
+        diagram
       case (otherwise, log) =>
         println(s"\n------OOPS $otherwise-------\n$log")
-        Diagram(name, source, img, pdf, log)
+        diagram.copy(log = log)
     }
   }
 }
