@@ -25,7 +25,7 @@ case class DiagramRenderer(cache: File) {
         wrap(err, "<font color='red'>%s</font>")::
         Nil
     }
-    val html = wrap(allLines filter(_.nonEmpty) mkString("</p>\n<p>"), "<p>$s</p>")
+    val html = wrap(allLines filter(_.nonEmpty) mkString("</p>\n<p>"), "<p>%s</p>")
     html
   }
 
