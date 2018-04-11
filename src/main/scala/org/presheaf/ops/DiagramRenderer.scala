@@ -7,7 +7,7 @@ import OS._
  * xypic Diagram Renderer
  * Produces a pdf and a png file
  */
-case class DiagramRenderer(cache: File) {
+case class DiagramRenderer(cache: File, script: String = "$homeDir/presheaf.sh") {
   require(cache.exists, "Server error, cache directory missing " + cache.getAbsolutePath)
   require(cache.isDirectory, "Server error, check cache directory " + cache.getAbsolutePath)
 
@@ -77,7 +77,7 @@ case class DiagramRenderer(cache: File) {
         println(s"Got an $x while trying to write to $src - $source")
     }
 
-    val command  = s"sh $homeDir/presheaf.sh $id"
+    val command  = s"sh $script $id"
     runM(command) match {
       case (0, _) =>
         println("\n------OK-------")

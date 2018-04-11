@@ -17,7 +17,7 @@ trait Dispatch {
   val cacheDir: File = new File(homeDir, "cache")
   
   private val ops = new PresheafOps {
-    val cache: File = cacheDir
+    val cacheDirectory: File = cacheDir
   }
   
   // we leave these abstract, since they will be provided by the App

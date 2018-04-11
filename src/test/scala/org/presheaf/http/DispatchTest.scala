@@ -3,6 +3,7 @@ package org.presheaf.http
 //#user-routes-spec
 //#test-top
 import java.io.{File, FileWriter}
+import java.net.URLEncoder
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.marshalling.Marshal
@@ -15,9 +16,18 @@ import org.scalatest.{Matchers, WordSpec}
 //#set-up
 class DispatchTest extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest
     with Dispatch {
+  
   private val testFileName: String = "testFile" + System.currentTimeMillis + ".txt"
   val testFile = new File(cacheDir, testFileName)
 
+  val renderingScriptFileName: String = s"$cacheDir/testRenderer.sh"
+  val renderingScript: String =
+    """
+      |
+    """.stripMargin
+  OS.writeTo(new File(renderingScriptFileName), renderingScript)
+  
+  
   override def afterAll(): Unit = {
     super.afterAll()
     testFile.delete()
@@ -46,7 +56,7 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
         entityAs[String] should ===(indexHtml)
       }
     }
-    "return examples if asked" in {
+    "return examples" in {
       val request = HttpRequest(uri = "/dws?op=samples")
 
       request ~> routes ~> check {
@@ -57,11 +67,23 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
           """[{"id":"d3e436z2t5w3p603o2v6838s494d1r32","source":"\\n& \\\\lambda\\""")
       }
     }
+    "produce diagrams" in {
+      val diagramSource = "U \\ar@/_/[ddr]_y \\ar@/^/[drr]^x\n  \\ar@{.>}[dr]|-{(x,y)} \\\\\n  & X \\times_Z Y \\ar[d]^q \\ar[r]_p & X \\ar[d]_f  \\\\\n  & Y \\ar[r]^g & Z"
+      val diagramEncoded = URLEncoder.encode(diagramSource, "UTF-8")
+      
+      val request = HttpRequest(uri = s"/dws?format=xy&in=$diagramEncoded")
+
+      request ~> routes ~> check {
+        status should ===(StatusCodes.OK)
+        contentType should ===(ContentTypes.`text/plain(UTF-8)`)
+
+        entityAs[String] should ===(
+          "{\"id\":\"d1t692m6s575z36353t6q4w294y69696s\",\"source\":\"U \\\\\\\\ar@/_/[ddr]_y \\\\\\\\ar@/^/[drr]^x\\\\n  \\\\\\\\ar@{.>}[dr]|-{(x,y)} \\\\\\\\\\\\\\\\\\\\n  & X \\\\\\\\times_Z Y \\\\\\\\ar[d]^q \\\\\\\\ar[r]_p & X \\\\\\\\ar[d]_f  \\\\\\\\\\\\\\\\\\\\n  & Y \\\\\\\\ar[r]^g & Z\",\"version\":\"1.1.0, build#00 Sun Mar 25 13:25:48 PDT 2018\"}")
+      }
+    }
     "return a file from cache" in {
-      val fw = new FileWriter(testFile)
       val text = s"Once (${new java.util.Date} upon a midnight dreary (midday eerie)\n"
-      fw.write(text) 
-      fw.close()
+      OS.writeTo(testFile, text)
       val request = HttpRequest(uri = s"/cache/$testFileName")
 
       request ~> routes ~> check {

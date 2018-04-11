@@ -10,7 +10,8 @@ import BuildInfo._
  */
 
 trait PresheafOps {
-  val cache: File
+  val cacheDirectory: File
+  val renderingScript: String = s"${OS.homeDir}/presheaf.sh"
   
   def ref(file: File): String = "cache/" + file.getName
   private val xyError = ".*Xy-pic error:(.*)\\\\xyerror.*".r
@@ -42,7 +43,7 @@ trait PresheafOps {
   def process(diagram: String) : Diagram = {
     require (diagram != null && !diagram.isEmpty, "no diagram to render")
     OS.log("Rendering diagram \"" + diagram + "\"")
-    DiagramRenderer(cache).process(diagram)
+    DiagramRenderer(cacheDirectory, renderingScript).process(diagram)
   }
 
   def produce(diagram:String): String = {

@@ -1,6 +1,6 @@
 package org.presheaf.ops
 
-import java.io.{BufferedOutputStream, ByteArrayInputStream, File, InputStream}
+import java.io._
 import java.util.Locale
 
 import OS.KindOfOS
@@ -9,6 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.sys.process._
+import scala.util.Try
 import scala.util.matching.Regex
 
 /**
@@ -80,4 +81,10 @@ object OS {
       getOrElse(throw new UnknownError("Cannot find my home! Lost in $curdir"))
   }
 
+  def writeTo(file: File, text: String): Try[Unit] = Try {
+    val fw = new FileWriter(file)
+    fw.write(text)
+    fw.close()
+  }
+  
 }
