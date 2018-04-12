@@ -71,7 +71,7 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
       val diagramSource = "U \\ar@/_/[ddr]_y \\ar@/^/[drr]^x\n  \\ar@{.>}[dr]|-{(x,y)} \\\\\n  & X \\times_Z Y \\ar[d]^q \\ar[r]_p & X \\ar[d]_f  \\\\\n  & Y \\ar[r]^g & Z"
       val diagramEncoded = URLEncoder.encode(diagramSource, "UTF-8")
       
-      val request = HttpRequest(uri = s"/dws?format=xy&in=$diagramEncoded")
+      val request = HttpRequest(uri = s"/dws?in=$diagramEncoded")
 
       request ~> routes ~> check {
         status should ===(StatusCodes.OK)

@@ -218,8 +218,8 @@ function getSrc(id) {
   )
 }
 
-function send(input, format) {
-  httpGet("dws?format=" + format + "&in=" + encodeURIComponent(input),
+function send(input) {
+  httpGet("dws?in=" + encodeURIComponent(input),
       () => {
         setState("please wait...")
         _("d_error").innerHTML = ""
@@ -244,9 +244,7 @@ function send(input, format) {
 
 function commit() {
   const input = _("d_in").value
-  const fc = _("d_format")
-  const format =  fc.options[fc.selectedIndex].value
-  send(input, format)
+  send(input)
 }
 
 function fillSamples(sources) {
@@ -277,7 +275,7 @@ function setListeners(image, id) {
 }
 
 function fillIn() {
-  httpGet("dws?format=xy&in=X",
+  httpGet("dws?in=X",
       skip,
       (text) => {
         _("d_version").innerHTML = eval("(" + text + ")").version

@@ -2,15 +2,13 @@ package org.presheaf.http
 
 import java.io.File
 
-import akka.actor.{ ActorRef, ActorSystem }
+import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.util.Timeout
-import org.presheaf.ops.{ Diagram, DiagramSamples, PresheafOps }
+import org.presheaf.ops.{ DiagramSamples, PresheafOps }
 
-import scala.concurrent.duration._
 import org.presheaf.ops.OS._
 
 trait Dispatch {
@@ -29,34 +27,25 @@ trait Dispatch {
   //  implicit lazy val timeout: Timeout = Timeout(10.seconds) // usually we'd obtain the timeout from the system's configuration
 
   val staticFiles: Route =
-    (get & path("")) {
-      pathEndOrSingleSlash {
-        getFromResource("static/index.html")
-      }
-    } ~ (get & pathPrefix("static")) {
-      getFromResourceDirectory("static")
-    }
+    (get & path(""))(getFromResource("static/index.html")) ~
+      (get & path("favicon.ico"))(getFromResource("static/favicon.ico")) ~
+      (get & pathPrefix("static"))(getFromResourceDirectory("static"))
 
-  val cachedFiles: Route = (get & pathPrefix("cache")) {
-    getFromDirectory(cacheDir.getAbsolutePath)
-  }
+  val cachedFiles: Route =
+    (get & pathPrefix("cache"))(getFromDirectory(cacheDir.getAbsolutePath))
 
   val service: Route = (get & path("dws")) {
     parameter("op") {
-      op =>
-        if (op == "samples") {
-          println(s"OK, we got an operation <<$op>>")
-          val rendered = DiagramSamples.samples map ops.produce
+      case "samples" =>
+        println(s"OK, serving samples")
+        val rendered = DiagramSamples.samples map ops.produce
+        complete(StatusCodes.OK, rendered.mkString("[", ",\n", "]"))
 
-          complete(StatusCodes.OK, rendered.mkString("[", ",\n", "]"))
-
-        } else {
-          complete((StatusCodes.BadRequest, s"Unknown op <<$op>>"))
-        }
-    } ~ parameter("format", "in") { (format, in) =>
-      println(s"OK, we got format=$format, in=$in")
-      val json = ops.produce(in)
-      complete((StatusCodes.OK, json))
+      case somethingWrong =>
+        complete((StatusCodes.BadRequest, s"Unknown op <<$somethingWrong>>"))
+    } ~ parameter("in") { in =>
+      println(s"OK, request in=$in")
+      complete((StatusCodes.OK, ops.produce(in)))
     }
   }
 
