@@ -3,11 +3,12 @@ package org.presheaf.ops
 import java.io.File
 
 case class Diagram(
-              id: String,
-              source: String,
-              img: File,
-              pdf: File,
-              log: String = "") {
+    id: String,
+    source: String,
+    img: File,
+    pdf: File,
+    log: String = ""
+) {
   def inCache: Boolean = img.exists && pdf.exists
 
   override def toString: String =

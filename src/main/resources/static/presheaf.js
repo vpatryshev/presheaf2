@@ -27,6 +27,7 @@ function newImage(key) {
 }
 
 const hide = (id) => {
+//  console.log("Whill hide " + id)
   const el = _(id)
   if (el) {
     const s = el.style
@@ -50,7 +51,7 @@ const quoteRef = (id) => ('<a href="' + getUrl() + '?d=' + id + '"><img src="htt
          '" title="click to go to presheaf.com for editing"/></a>')
 
 function justShow(id) {
-  var ref = pdfRef(id)
+  let ref = pdfRef(id)
   _("d_png").src  = imgRef(id)
   _("d_pdf").href = ref
   _("d_pdf_e").src = ref
@@ -89,15 +90,17 @@ var myHistory = getHistory()
 
 const saveHistory = () => localStorage.history = JSON.stringify(myHistory)
 
-const touch = (id) => {
+function touch(id) {
+//  console.log("touching " + id)
   myHistory[id].date = new Date().getTime()
   saveHistory()
   showHistory()
 }
 
 
-const choose = (i) => {
+function choose(i) {
   let id = idNumber(i)
+//  console.log("Chose #" + i + "->" + id)
   justShow(id)
   touch(id)
 }
@@ -135,34 +138,37 @@ function showHistory() {
 }
 
 function fillImages(ids) {
-  var loadedImages = []
-
   for (i = 0; i < ids.length; i++) {
     const id = ids[i]
-    const hel = myHistory[id]
-    if (id && !hel.deleted) {
-      loadedImages[i] = newImage(id)
-      loadedImages[i].id = "i." + i
-      var ref = _("ai." + i)
-      if (ref) {
-        ref.title = hel.text
-        loadedImages[i].onload = function() {
-          const key = this.id
-          const el = _(key)
-          el.src = this.src
-          el.width = Math.min(100, this.width)
-          show("h"+key)
-          show(key)
-        }
+    fillHistoryElement(i, id)
+  }
+  hide("hi." + ids.length)
+}
+
+function fillHistoryElement(i, id) {
+  let ref = _("ai." + i)
+  const hel = myHistory[id]
+  if (id && !hel.deleted) {
+  let loadedImage = newImage(id)
+    loadedImage.id = "i." + i
+    if (ref) {
+      ref.title = hel.text
+      loadedImage.onload = function() {
+        const key = this.id
+        const el = _(key)
+        el.src = this.src
+        el.width = Math.min(100, this.width)
+        show("h"+key)
+        show(key)
       }
     }
   }
 }
 
-function showDiagram(diagram, sourceText) {
+function showDiagram(diagram) {
   setState("Here's your diagram.")
   justShow(diagram.id)
-  addToHistory(diagram.id, sourceText)
+  addToHistory(diagram.id, diagram.source)
 }
 
 function httpGet(uri, onwait, onload, onerror) {
@@ -226,7 +232,7 @@ function send(input, format) {
             error("Error: " + response.error)
           } else {
             response.image = newImage(response.id)
-            response.image.onload = () => showDiagram(response, input)
+            response.image.onload = () => showDiagram(response)
           }
         } catch (e) {
           error("error: " + e)
@@ -255,7 +261,7 @@ function fillSamples(sources) {
       loadedImages[i].id = "i." + id
       loadedImages[i].alt = sources[i].source
       setListeners(loadedImages[i], id)
-    } else {
+//    } else {
 //      console.log("#" + i + " is bad: " + id)
     }
   }
@@ -267,20 +273,6 @@ function setListeners(image, id) {
   image.onload = function() {
     this.width = Math.min(100, this.width)
     _('s.' + this.id).appendChild(this)
-  }
-}
-
-
-function setListenersBad(image, key) {
-  image.onclick = Function('justShow("' + key + '")')
-  image.onload = () => {
-    this.width = Math.min(100, this.width)
-    const segKey = 's.i.' + key
-    const seg = _(segKey)
-    if (seg) {
-      console.log("Appending " + key + " to " + seg)
-      seg.appendChild(this)
-    }
   }
 }
 

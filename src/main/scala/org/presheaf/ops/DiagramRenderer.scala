@@ -1,6 +1,6 @@
 package org.presheaf.ops
 
-import java.io.{IOException, File, FileOutputStream}
+import java.io.{ IOException, File, FileOutputStream }
 import OS._
 
 /**
@@ -13,19 +13,19 @@ case class DiagramRenderer(cache: File, script: String = "$homeDir/presheaf.sh")
 
   def wrap(what: Any, fmt: String): String =
     if (what.toString.isEmpty) "" else fmt.format(what)
-  
+
   def explain(action: String, results: (Int, String, String)): String = {
     val (code, log, err) = results
     val allLines = code match {
       case 0 => Nil
-      case _       => 
-        wrap(action, "<code>>%s</code>")::
-        wrap(code, "result = %d")::
-//        wrap(log, "%s")::
-        wrap(err, "<font color='red'>%s</font>")::
-        Nil
+      case _ =>
+        wrap(action, "<code>>%s</code>") ::
+          wrap(code, "result = %d") ::
+          //        wrap(log, "%s")::
+          wrap(err, "<font color='red'>%s</font>") ::
+          Nil
     }
-    val html = wrap(allLines filter(_.nonEmpty) mkString("</p>\n<p>"), "<p>%s</p>")
+    val html = wrap(allLines filter (_.nonEmpty) mkString ("</p>\n<p>"), "<p>%s</p>")
     html
   }
 
@@ -50,17 +50,17 @@ case class DiagramRenderer(cache: File, script: String = "$homeDir/presheaf.sh")
     new File(cache, name)
   }
 
-  def process(source: String) : Diagram = {
-      OS.log("decoded '" + source + "' to '" + source + "'")
-      val id = idFor(source)
-      val img: File = diagramFile("$id.png")
-      val pdf: File = diagramFile("$id.pdf")
-      val diagram = new Diagram(id, source, img, pdf)
-      val result =
-          if (diagram.inCache) diagram
-          else             doWithScript(diagram)
-      OS.log(s"Renderer.process: $result.")
-      result
+  def process(source: String): Diagram = {
+    OS.log("decoded '" + source + "' to '" + source + "'")
+    val id = idFor(source)
+    val img: File = diagramFile("$id.png")
+    val pdf: File = diagramFile("$id.pdf")
+    val diagram = new Diagram(id, source, img, pdf)
+    val result =
+      if (diagram.inCache) diagram
+      else doWithScript(diagram)
+    OS.log(s"Renderer.process: $result.")
+    result
   }
 
   def doWithScript(diagram: Diagram): Diagram = {
@@ -73,11 +73,11 @@ case class DiagramRenderer(cache: File, script: String = "$homeDir/presheaf.sh")
       srcFile.close()
       println(s"got $source")
     } catch {
-      case x: Exception => 
+      case x: Exception =>
         println(s"Got an $x while trying to write to $src - $source")
     }
 
-    val command  = s"sh $script $id"
+    val command = s"sh $script $id"
     runM(command) match {
       case (0, _) =>
         println("\n------OK-------")
@@ -97,7 +97,7 @@ object DiagramRenderer {
   def encode(b: Byte): String = java.lang.Integer.toString(b & 0xff, 36)
 
   def md5(message: String): String = {
-    ("" /: digest.digest(message.getBytes("UTF-8"))) (_+ encode(_))
+    ("" /: digest.digest(message.getBytes("UTF-8")))(_ + encode(_))
   }
 
 }
