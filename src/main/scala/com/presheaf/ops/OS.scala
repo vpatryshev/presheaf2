@@ -1,4 +1,4 @@
-package org.presheaf.ops
+package com.presheaf.ops
 
 import java.io._
 import java.util.Locale
@@ -17,10 +17,6 @@ import scala.util.matching.Regex
  */
 
 object OS {
-
-  def log(thing: Any) {
-    println("" + new java.util.Date + "] " + thing + "\n")
-  }
 
   def run(cmd: String): (Int, String, String) = {
     val se = new StringBuilder
@@ -49,7 +45,7 @@ object OS {
     run("whoami")._2.toString.trim
   }
 
-  sealed abstract class KindOfOS(namePattern: String, home: String = "/home") {
+  sealed abstract class KindOfOS(namePattern: String, home: String = "/home/") {
     def matches(name: String): Boolean = name matches namePattern
     def homeRoot: File = new File(home)
     val regCand = s"${home.replaceAll("\\\\", "\\\\")}(\\w+)"
@@ -58,16 +54,16 @@ object OS {
 
   case object Mac extends KindOfOS("(mac|darwin).*", "/Users/")
   case object Windows extends KindOfOS("win.*", "\\Users\\")
-  case object Linux extends KindOfOS("nux.*")
-  case object Unix extends KindOfOS("(nix|aix).*")
-  case object Unknown extends KindOfOS(".*")
+  case object Linux extends KindOfOS(".*nux.*")
+  case object Unix extends KindOfOS(".*(nix|aix).*")
+  case class Unknown(name: String) extends KindOfOS("WTF", "not a legal folder")
 
   val thisOS: KindOfOS = {
     val name = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
-    List(Mac, Windows, Linux, Unix, Unknown) find (_ matches name) getOrElse Unknown
+    List(Mac, Windows, Linux, Unix, Unknown("?")) find (_ matches name) getOrElse Unknown(name)
   }
 
-  lazy val homeDir: File = {
+  val homeDir: File = {
     def findIt(file: File): Option[File] = {
       val ap = file.getAbsolutePath
       ap match {
@@ -76,10 +72,10 @@ object OS {
         case _ => None
       }
     }
-    val curdir = new File(".").getAbsoluteFile
 
-    findIt(curdir).map(_.getAbsoluteFile).
-      getOrElse(throw new UnknownError("Cannot find my home! Lost in $curdir"))
+    val curdir = Option(new File(".").getAbsoluteFile)
+    val optional = curdir flatMap findIt map (_.getAbsoluteFile)
+    optional getOrElse (throw new UnknownError(s"Cannot find my home! Lost in $curdir"))
   }
 
   def writeTo(file: File, text: String): Try[Unit] = Try {

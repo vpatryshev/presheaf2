@@ -2,6 +2,7 @@ lazy val akkaHttpVersion = "10.0.11"
 lazy val akkaVersion    = "2.4.20"
 
 enablePlugins(JavaAppPackaging)
+// resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 lazy val root = (project in file(".")).
   settings(
@@ -16,6 +17,7 @@ lazy val root = (project in file(".")).
       "com.typesafe.akka" %% "akka-http-xml"        % akkaHttpVersion,
       "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
       "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
+//      "de.heikoseeberger" %% "accessus" % "0.1.0", // access logging, @see https://github.com/hseeberger/accessus
 
       "com.typesafe.akka" %% "akka-stream-testkit"  % akkaVersion     % Test,
       "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpVersion % Test,

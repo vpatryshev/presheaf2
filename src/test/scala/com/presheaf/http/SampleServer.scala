@@ -1,4 +1,4 @@
-package org.presheaf.http
+package com.presheaf.http
 
 import akka.Done
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}

@@ -1,4 +1,4 @@
-package org.presheaf
+package com.presheaf
 
 import java.nio.file.Paths
 

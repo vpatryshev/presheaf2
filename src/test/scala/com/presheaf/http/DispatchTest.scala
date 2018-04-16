@@ -1,4 +1,4 @@
-package org.presheaf.http
+package com.presheaf.http
 
 //#user-routes-spec
 //#test-top
@@ -9,7 +9,7 @@ import akka.actor.ActorRef
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import org.presheaf.ops.{OS, Res}
+import com.presheaf.ops.{OS, Res}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 
@@ -78,7 +78,7 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
         contentType should ===(ContentTypes.`text/plain(UTF-8)`)
 
         entityAs[String] should ===(
-          "{\"id\":\"d1t692m6s575z36353t6q4w294y69696s\",\"source\":\"U \\\\\\\\ar@/_/[ddr]_y \\\\\\\\ar@/^/[drr]^x\\\\n  \\\\\\\\ar@{.>}[dr]|-{(x,y)} \\\\\\\\\\\\\\\\\\\\n  & X \\\\\\\\times_Z Y \\\\\\\\ar[d]^q \\\\\\\\ar[r]_p & X \\\\\\\\ar[d]_f  \\\\\\\\\\\\\\\\\\\\n  & Y \\\\\\\\ar[r]^g & Z\",\"version\":\"1.1.0, build#00 Sun Mar 25 13:25:48 PDT 2018\"}")
+          "{\"id\":\"d1t692m6s575z36353t6q4w294y69696s\",\"source\":\"U \\\\\\\\ar@/_/[ddr]_y \\\\\\\\ar@/^/[drr]^x\\\\n  \\\\\\\\ar@{.>}[dr]|-{(x,y)} \\\\\\\\\\\\\\\\\\\\n  & X \\\\\\\\times_Z Y \\\\\\\\ar[d]^q \\\\\\\\ar[r]_p & X \\\\\\\\ar[d]_f  \\\\\\\\\\\\\\\\\\\\n  & Y \\\\\\\\ar[r]^g & Z\",\"version\":\"1.1.0, build#0011 Thu Apr 12 20:34:47 PDT 2018\"}")
       }
     }
     "return a file from cache" in {

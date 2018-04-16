@@ -1,4 +1,4 @@
-package org.presheaf.ops
+package com.presheaf.ops
 
 import java.io.InputStream
 

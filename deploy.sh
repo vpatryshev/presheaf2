@@ -18,7 +18,7 @@ mv -f $ZIPFILE archive/$ZIPNAME.$VERSION || true
 pushd target/universal/stage
 zip -r $ZIPFILE ./*
 popd
-echo "got version `cat src/main/resources/buildno.txt`"
+echo "got build `cat src/main/resources/buildno.txt`"
 #echo "presheaf-06062011-256MlU04JcS1o"
 $SCP uploads/*.zip
 $SCP uploads/ready2.flag

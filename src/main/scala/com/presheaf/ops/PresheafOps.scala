@@ -1,15 +1,12 @@
-package org.presheaf.ops
-
-import org.presheaf._
+package com.presheaf.ops
 
 import java.io._
-import BuildInfo._
 
 /**
  * Presheaf operations
  */
 
-trait PresheafOps {
+trait PresheafOps extends TheyLog {
   val cacheDirectory: File
   val renderingScript: String = s"${OS.homeDir}/presheaf.sh"
 
@@ -26,17 +23,17 @@ trait PresheafOps {
 
   def errorLog(log: String): Map[String, String] = {
     val fullLog = log.replaceAll("\\\\", "\\\\").replaceAll("\"", "\\\"")
-    OS.log(fullLog)
+    info(fullLog)
     fullLog match {
       case xyError(msg) =>
         Map(
           "error" -> msg,
-          "version" -> version
+          "version" -> BuildInfo.version
         )
       case _ =>
         Map(
           "error" -> fullLog,
-          "version" -> version
+          "version" -> BuildInfo.version
         )
 
     }
@@ -44,8 +41,8 @@ trait PresheafOps {
 
   def process(diagram: String): Diagram = {
     require(diagram != null && !diagram.isEmpty, "no diagram to render")
-    OS.log("Rendering diagram \"" + diagram + "\"")
-    DiagramRenderer(cacheDirectory, renderingScript).process(diagram)
+    info("Rendering diagram \"" + diagram + "\"")
+    DiagramRenderer(cacheDirectory, renderingScript, logger).process(diagram)
   }
 
   def produce(diagram: String): String = {
@@ -55,7 +52,7 @@ trait PresheafOps {
         Map(
           "id" -> d.id,
           "source" -> quote(d.source),
-          "version" -> version
+          "version" -> BuildInfo.version
         )
       } else {
         errorLog(d.log)

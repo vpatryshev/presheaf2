@@ -1,0 +1,2 @@
+. ./instance
+scp -i $KEYFILE $1 $HOMETHERE/download/`basename $1`

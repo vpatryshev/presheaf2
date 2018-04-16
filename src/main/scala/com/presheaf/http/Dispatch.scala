@@ -1,4 +1,4 @@
-package org.presheaf.http
+package com.presheaf.http
 
 import java.io.File
 
@@ -7,27 +7,26 @@ import akka.event.Logging
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import org.presheaf.ops.{ DiagramSamples, PresheafOps }
+import com.presheaf.http.Server.system
+import com.presheaf.ops.{AkkaLogs, DiagramSamples, PresheafOps, TheyLog}
+import com.presheaf.ops.OS._
 
-import org.presheaf.ops.OS._
-
-trait Dispatch {
+trait Dispatch extends TheyLog { dispatch =>
   val cacheDir: File = new File(homeDir, "cache")
-
-  private val ops = new PresheafOps {
-    val cacheDirectory: File = cacheDir
-  }
 
   // we leave these abstract, since they will be provided by the App
   implicit def system: ActorSystem
 
-  lazy val log = Logging(system, classOf[Dispatch])
+  lazy val logger = AkkaLogs(Logging(system, "FULL_LOG"))
 
-  //  // Required by the `ask` (?) method below
-  //  implicit lazy val timeout: Timeout = Timeout(10.seconds) // usually we'd obtain the timeout from the system's configuration
-
+  private val ops = new PresheafOps {
+    val cacheDirectory: File = cacheDir
+    def logger = dispatch.logger
+  }
+  
   val staticFiles: Route =
     (get & path(""))(getFromResource("static/index.html")) ~
+      (get & path("robots.txt"))(getFromResource("static/robots.txt")) ~
       (get & path("favicon.ico"))(getFromResource("static/favicon.ico")) ~
       (get & pathPrefix("static"))(getFromResourceDirectory("static"))
 

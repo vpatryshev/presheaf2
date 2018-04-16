@@ -1,4 +1,4 @@
-package org.presheaf.ops
+package com.presheaf.ops
 
 import java.io.{ IOException, File, FileOutputStream }
 import OS._
@@ -7,7 +7,7 @@ import OS._
  * xypic Diagram Renderer
  * Produces a pdf and a png file
  */
-case class DiagramRenderer(cache: File, script: String = "$homeDir/presheaf.sh") {
+case class DiagramRenderer(cache: File, script: String, logger: ILog) extends TheyLog {
   require(cache.exists, "Server error, cache directory missing " + cache.getAbsolutePath)
   require(cache.isDirectory, "Server error, check cache directory " + cache.getAbsolutePath)
 
@@ -25,7 +25,7 @@ case class DiagramRenderer(cache: File, script: String = "$homeDir/presheaf.sh")
           wrap(err, "<font color='red'>%s</font>") ::
           Nil
     }
-    val html = wrap(allLines filter (_.nonEmpty) mkString ("</p>\n<p>"), "<p>%s</p>")
+    val html = wrap(allLines filter (_.nonEmpty) mkString "</p>\n<p>", "<p>%s</p>")
     html
   }
 
@@ -51,7 +51,7 @@ case class DiagramRenderer(cache: File, script: String = "$homeDir/presheaf.sh")
   }
 
   def process(source: String): Diagram = {
-    OS.log("decoded '" + source + "' to '" + source + "'")
+    info("decoded '" + source + "' to '" + source + "'")
     val id = idFor(source)
     val img: File = diagramFile("$id.png")
     val pdf: File = diagramFile("$id.pdf")
@@ -59,7 +59,7 @@ case class DiagramRenderer(cache: File, script: String = "$homeDir/presheaf.sh")
     val result =
       if (diagram.inCache) diagram
       else doWithScript(diagram)
-    OS.log(s"Renderer.process: $result.")
+    info(s"Renderer.process: $result.")
     result
   }
 
@@ -71,19 +71,19 @@ case class DiagramRenderer(cache: File, script: String = "$homeDir/presheaf.sh")
       val srcFile = new FileOutputStream(src)
       srcFile.write(source.getBytes)
       srcFile.close()
-      println(s"got $source")
+      debug(s"got $source")
     } catch {
       case x: Exception =>
-        println(s"Got an $x while trying to write to $src - $source")
+        error(s"Got an $x while trying to write to $src - $source")
     }
 
     val command = s"sh $script $id"
     runM(command) match {
       case (0, _) =>
-        println("\n------OK-------")
+        debug("\n------OK-------")
         diagram
       case (otherwise, log) =>
-        println(s"\n------OOPS $otherwise-------\n$log")
+        debug(s"\n------OOPS $otherwise-------\n$log")
         diagram.copy(log = log)
     }
   }
