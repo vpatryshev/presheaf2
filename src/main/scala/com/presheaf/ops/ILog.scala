@@ -9,7 +9,7 @@ trait ILog {
 
 trait TheyLog extends ILog {
   def logger: ILog
-  def debug(x: => Any): Unit  = logger.debug(x)
+  def debug(x: => Any): Unit = logger.debug(x)
   def info(x: => Any): Unit = logger.info(x)
   def error(x: => Any): Unit = logger.error(x)
 }
@@ -23,8 +23,8 @@ import sun.util.logging.resources.logging
 import scala.concurrent.Future
 
 case class AkkaLogs(logging: LoggingAdapter) extends ILog {
-  private def string(x: Any): String = 
-    String.valueOf(x).replaceAllLiterally("\n", "\n    ")
+  private def string(x: Any): String =
+    String.valueOf(x).replace("\n", "\n    ")
 
   override def debug(x: => Any): Unit = logging.debug(string(x))
 
@@ -36,12 +36,10 @@ case class AkkaLogs(logging: LoggingAdapter) extends ILog {
   val accessLog: AccessLog[Long, Future[Done]] =
     Sink.foreach {
       case ((req, t0), res) =>
-        req.method
         val m = req.method.value
-        val p = req.uri.path.toString
-        val s = res.status.intValue()
+        val p = req.uri.path
+        val s = res.status.intValue
         val t = (now() - t0) / 1000
-        //        req.
         info(s"$m $p $s $t")
     }
   private def now() = System.nanoTime()

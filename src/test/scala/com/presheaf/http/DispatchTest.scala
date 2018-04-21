@@ -17,6 +17,8 @@ import org.scalatest.{Matchers, WordSpec}
 class DispatchTest extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest
     with Dispatch {
   
+  def stop() = None
+  
   private val testFileName: String = "testFile" + System.currentTimeMillis + ".txt"
   val testFile = new File(cacheDir, testFileName)
 

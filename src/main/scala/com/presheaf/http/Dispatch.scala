@@ -8,22 +8,28 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.presheaf.http.Server.system
-import com.presheaf.ops.{AkkaLogs, DiagramSamples, PresheafOps, TheyLog}
+import com.presheaf.ops.{ AkkaLogs, DiagramSamples, PresheafOps, TheyLog }
 import com.presheaf.ops.OS._
 
 trait Dispatch extends TheyLog { dispatch =>
   val cacheDir: File = new File(homeDir, "cache")
+  
+  def stop(): Option[String]
 
   // we leave these abstract, since they will be provided by the App
   implicit def system: ActorSystem
 
   lazy val logger = AkkaLogs(Logging(system, "FULL_LOG"))
 
+  //  val ipExtractor = extractClientIP { ip =>
+  //    complete("Client's ip is " + ip.toOption.map(_.getHostAddress).getOrElse("unknown"))
+  //  }
+
   private val ops = new PresheafOps {
     val cacheDirectory: File = cacheDir
     def logger = dispatch.logger
   }
-  
+
   val staticFiles: Route =
     (get & path(""))(getFromResource("static/index.html")) ~
       (get & path("robots.txt"))(getFromResource("static/robots.txt")) ~
@@ -40,6 +46,13 @@ trait Dispatch extends TheyLog { dispatch =>
         val rendered = DiagramSamples.samples map ops.produce
         complete(StatusCodes.OK, rendered.mkString("[", ",\n", "]"))
 
+      case "ostanovite" =>
+        println(s"Request to stop")
+        stop() match {
+          case Some(text) => complete(StatusCodes.OK, text)
+          case None => complete(StatusCodes.NotFound, "yeah right hacker")
+        }
+
       case somethingWrong =>
         complete((StatusCodes.BadRequest, s"Unknown op <<$somethingWrong>>"))
     } ~ parameter("in") { in =>
@@ -49,5 +62,4 @@ trait Dispatch extends TheyLog { dispatch =>
   }
 
   lazy val routes: Route = staticFiles ~ cachedFiles ~ service
-
 }

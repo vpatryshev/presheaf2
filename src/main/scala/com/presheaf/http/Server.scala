@@ -1,5 +1,8 @@
 package com.presheaf.http
 
+import java.io.{File, FileOutputStream, FileWriter}
+import java.util.Date
+
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import de.heikoseeberger.accessus.Accessus._
@@ -21,11 +24,6 @@ object Server extends App with Dispatch {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   import system.dispatcher
 
-//  import akka.http.scaladsl.server.directives.DebuggingDirectives
-//
-//  val clientRouteLogged =
-//    DebuggingDirectives.logRequestResult("Client ReST", Logging.InfoLevel)(routes)
-
   val moreLogging = new RouteOps(routes).withAccessLog(logger.accessLog)
 
   Http()
@@ -40,5 +38,22 @@ object Server extends App with Dispatch {
 
   info(s"Running on port $PORT...")
 
+  val flag = new File("presheaf2.flag")
+  val fos = new FileWriter(flag)
+  fos.write("started " + new Date())
+  fos.close()
+  
+  def stop(): Option[String] = {
+    if (flag.lastModified() + 5 * 60 * 1000 < System.currentTimeMillis()) {
+      info("Shutting down...")
+      system.terminate()
+      Some("Shutting down")
+    } else {
+      None
+    }
+  }
+
   Await.result(system.whenTerminated, Duration.Inf)
+
+
 }
