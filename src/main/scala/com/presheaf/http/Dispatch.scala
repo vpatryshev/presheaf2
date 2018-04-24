@@ -13,7 +13,7 @@ import com.presheaf.ops.OS._
 
 trait Dispatch extends TheyLog { dispatch =>
   val cacheDir: File = new File(homeDir, "cache")
-  
+
   def stop(): Option[String]
 
   // we leave these abstract, since they will be provided by the App

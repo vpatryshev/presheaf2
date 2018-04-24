@@ -1,19 +1,22 @@
-#!/bin/bash
-# Copy me to ~, create a ~/cache folder
-# This script is for testing presheaf locally, while the remote one works ok
+# Generates images; pass file name without extension
+. /home/ubuntu/instance
+echo "DOING IT..."
+#echo "I am `whoami`"
+NAME=$1
+SRC=$NAME.src
+TEX=$NAME.tex
+EPS=$NAME.eps
+DVI=$NAME.dvi
+IMG=$NAME.png
+LOG=$NAME.log
+echo "Working on $SRC"
+#chmod a+r $CACHE/$SRC
+#chmod a+w $CACHE/$LOG
+#ls -l $CACHE/$SRC
 
-set -e
-rm -f out.tmp
-cache=/Users/vpatryshev/cache
-id=$1
-src=$id.src
-pdf=$id.pdf
-png=$id.png
-echo "Rendering $id.src -> $id.pdf and $id.png"
-curl -G --data-urlencode format=xy --data-urlencode in@$cache/$src http://presheaf.com/dws > $id.out
-hash=`cat $id.out | sed 's/.*\"id\":\"//' | sed 's/".*//'`
-rm $id.out
-
-curl "http://presheaf.com/cache/$hash.pdf" > $cache/$pdf
-curl "http://presheaf.com/cache/$hash.png" > $cache/$png
-
+grep -q -e "\\\\\\(tikz\\|draw\\|fill\\|filldraw\\|shade\\|path\\|node\\)" $CACHE/$SRC
+if [ "$?" -eq "0" ]; then
+  $INSTANCE_HOME/dotikz.sh $1
+else
+  $INSTANCE_HOME/doxy.sh $1
+fi
