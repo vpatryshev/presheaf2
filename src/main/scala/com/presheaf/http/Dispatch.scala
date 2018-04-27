@@ -7,7 +7,6 @@ import akka.event.Logging
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import com.presheaf.http.Server.system
 import com.presheaf.ops.{ AkkaLogs, DiagramSamples, PresheafOps, TheyLog }
 import com.presheaf.ops.OS._
 
@@ -20,10 +19,6 @@ trait Dispatch extends TheyLog { dispatch =>
   implicit def system: ActorSystem
 
   lazy val logger = AkkaLogs(Logging(system, "FULL_LOG"))
-
-  //  val ipExtractor = extractClientIP { ip =>
-  //    complete("Client's ip is " + ip.toOption.map(_.getHostAddress).getOrElse("unknown"))
-  //  }
 
   private val ops = new PresheafOps {
     val cacheDirectory: File = cacheDir

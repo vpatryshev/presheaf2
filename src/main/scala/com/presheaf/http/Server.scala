@@ -6,14 +6,10 @@ import java.util.Date
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
 import de.heikoseeberger.accessus.Accessus._
-import akka.Done
 import akka.actor.ActorSystem
-import akka.event.{ Logging, LoggingAdapter }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
-import sun.util.logging.resources.logging
 
 import scala.util.{ Failure, Success }
 

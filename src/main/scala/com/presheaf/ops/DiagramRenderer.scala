@@ -67,6 +67,7 @@ case class DiagramRenderer(cache: File, script: String, logger: ILog) extends Th
     val id = diagram.id
     val source = diagram.source
     val src = diagramFile(s"$id.src")
+    info(s"Will have to do with script: $src")
     try {
       val srcFile = new FileOutputStream(src)
       srcFile.write(source.getBytes)
