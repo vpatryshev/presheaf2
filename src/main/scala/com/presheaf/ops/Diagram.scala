@@ -9,7 +9,7 @@ case class Diagram(
     pdf: File,
     log: String = ""
 ) {
-  def inCache: Boolean = img.exists && pdf.exists
+  def inCache: Boolean = img.canRead && pdf.canRead
 
   override def toString: String =
     s"Diagram($id, $source, $img, $pdf, $log)"

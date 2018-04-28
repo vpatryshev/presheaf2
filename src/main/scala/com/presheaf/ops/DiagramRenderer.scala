@@ -1,7 +1,9 @@
 package com.presheaf.ops
 
-import java.io.{ IOException, File, FileOutputStream }
-import OS._
+import java.io.{ File, FileOutputStream }
+
+import scala.io.Source
+import scala.util.{ Failure, Success, Try }
 
 /**
  * xypic Diagram Renderer
@@ -29,10 +31,11 @@ case class DiagramRenderer(cache: File, script: String, logger: ILog) extends Th
     html
   }
 
-  def runM(action: String): (Int, String) = {
+  def runM(action: String): Try[String] = Try {
     val results = OS.run(action)
     val log = explain(action, results)
-    (results._1, log)
+    if (results._1 != 0) throw new RuntimeException(log)
+    log
   }
 
   def withExtension(file: File, extension: String): File = {
@@ -41,7 +44,9 @@ case class DiagramRenderer(cache: File, script: String, logger: ILog) extends Th
   }
 
   def delete(file: File, extensions: List[String]) {
-    for (x <- extensions) { withExtension(file, x).delete }
+    for (x <- extensions) {
+      withExtension(file, x).delete
+    }
   }
 
   def idFor(tex: String): String = "d" + DiagramRenderer.md5(tex)
@@ -63,38 +68,47 @@ case class DiagramRenderer(cache: File, script: String, logger: ILog) extends Th
     result
   }
 
+  def upsert(file: File, content: String): Try[Any] = {
+    Try {
+      Source.fromFile(file).getLines().mkString("\n")
+    } filter (content ==) orElse Try {
+      val out = new FileOutputStream(file)
+      out.write(content.getBytes)
+      out.close()
+    }
+  }
+
   def doWithScript(diagram: Diagram): Diagram = {
     val id = diagram.id
     val source = diagram.source
     val src = diagramFile(s"$id.src")
     info(s"Will have to do with script: $src")
-    try {
-      val srcFile = new FileOutputStream(src)
-      srcFile.write(source.getBytes)
-      srcFile.close()
-      debug(s"got $source")
-    } catch {
-      case x: Exception =>
-        error(s"Got an $x while trying to write to $src - $source")
-    }
-
-    val command = s"sh $script $id"
-    runM(command) match {
-      case (0, _) =>
-        debug("\n------OK-------")
+    upsert(src, source) match {
+      case Failure(oops) =>
+        error(s"Got an $oops while trying to write to $src - $source")
         diagram
-      case (otherwise, log) =>
-        debug(s"\n------OOPS $otherwise-------\n$log")
-        diagram.copy(log = log)
+      case Success(_) =>
+        runM(s"sh $script $id") match {
+          case Success(log) =>
+            debug(s"\n------OK-------\n$log")
+            diagram
+          case Failure(err) =>
+            val log = err.getMessage
+            debug(s"\n------OOPS -------\n$log")
+            diagram.copy(log = log)
+        }
     }
   }
+
 }
 
 object DiagramRenderer {
 
   import java.security._
+
   private val digest = MessageDigest.getInstance("MD5")
   digest.reset()
+
   def encode(b: Byte): String = java.lang.Integer.toString(b & 0xff, 36)
 
   def md5(message: String): String = {
