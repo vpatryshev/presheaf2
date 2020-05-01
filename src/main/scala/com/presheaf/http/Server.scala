@@ -2,21 +2,28 @@ package com.presheaf.http
 
 import java.io.{ File, FileOutputStream, FileWriter }
 import java.util.Date
+import javax.net.ssl.{ SSLContext, SSLParameters }
 
+import com.typesafe.sslconfig.akka.AkkaSSLConfig
+
+import scala.collection.parallel
+import scala.collection.parallel.immutable
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
 import de.heikoseeberger.accessus.Accessus._
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
+import akka.http.scaladsl.{ HttpsConnectionContext, Http }
 import akka.http.scaladsl.Http.ServerBinding
-import akka.stream.ActorMaterializer
+import akka.stream.{ TLSClientAuth, ActorMaterializer }
 
 import scala.util.{ Failure, Success }
 
 //#main-class
 object Server extends App with Dispatch {
+
   val PORT: Int = args.headOption.getOrElse("8721").toInt
   implicit val system: ActorSystem = ActorSystem("Presheaf")
+  val sslConfig = AkkaSSLConfig()
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   import system.dispatcher
 
