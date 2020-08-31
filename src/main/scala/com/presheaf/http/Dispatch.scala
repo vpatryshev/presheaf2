@@ -11,7 +11,11 @@ import com.presheaf.ops.{ AkkaLogs, DiagramSamples, PresheafOps, TheyLog }
 import com.presheaf.ops.OS._
 
 trait Dispatch extends TheyLog { dispatch =>
-  val cacheDir: File = new File(homeDir, "cache")
+  val cacheDir: File = List(new File("."), new File(".."), homeDir) map {
+    dir => new File(dir, "diagrams").getCanonicalFile
+  } find (_.isDirectory) getOrElse {
+    throw new IllegalStateException("Could not find diagrams folder")
+  }
 
   def stop(): Option[String]
 
@@ -29,7 +33,8 @@ trait Dispatch extends TheyLog { dispatch =>
     (get & path(""))(getFromResource("static/index.html")) ~
       (get & path("robots.txt"))(getFromResource("static/robots.txt")) ~
       (get & path("favicon.ico"))(getFromResource("static/favicon.ico")) ~
-      (get & pathPrefix("static"))(getFromResourceDirectory("static"))
+      (get & pathPrefix("static"))(getFromResourceDirectory("static")) ~
+      (get)(getFromBrowseableDirectories("webroot"))
 
   val cachedFiles: Route =
     (get & pathPrefix("cache"))(getFromDirectory(cacheDir.getAbsolutePath))
@@ -37,12 +42,10 @@ trait Dispatch extends TheyLog { dispatch =>
   val service: Route = (get & path("dws")) {
     parameter("op") {
       case "samples" =>
-        println(s"OK, serving samples")
         val rendered = DiagramSamples.samples map ops.produce
         complete(StatusCodes.OK, rendered.mkString("[", ",\n", "]"))
 
       case "ostanovite" =>
-        println(s"Request to stop")
         stop() match {
           case Some(text) => complete(StatusCodes.OK, text)
           case None => complete(StatusCodes.NotFound, "yeah right hacker")
@@ -51,7 +54,6 @@ trait Dispatch extends TheyLog { dispatch =>
       case somethingWrong =>
         complete((StatusCodes.BadRequest, s"Unknown op <<$somethingWrong>>"))
     } ~ parameter("in") { in =>
-      println(s"OK, request in=$in")
       complete((StatusCodes.OK, ops.produce(in)))
     }
   }

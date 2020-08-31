@@ -8,7 +8,16 @@ import java.io._
 
 trait PresheafOps extends TheyLog {
   val cacheDirectory: File
-  val renderingScript: String = s"${OS.homeDir}/presheaf.sh"
+  val renderingScript: String = findScript(
+    "presheaf.sh",
+    s"${OS.homeDir}/presheaf.sh"
+  ).getAbsolutePath
+
+  def findScript(alternatives: String*): File = {
+    alternatives map (new File(_)) find (_.canExecute) getOrElse {
+      throw new IllegalStateException(s"Could not find a script among $alternatives")
+    }
+  }
 
   def ref(file: File): String = "cache/" + file.getName
   private val xyError = ".*Xy-pic error:(.*)\\\\xyerror.*".r
@@ -39,10 +48,12 @@ trait PresheafOps extends TheyLog {
     }
   }
 
+  lazy val renderer = DiagramRenderer(cacheDirectory, renderingScript, logger)
+
   def process(diagram: String): Diagram = {
     require(diagram != null && !diagram.isEmpty, "no diagram to render")
     info("Rendering diagram \"" + diagram + "\"")
-    DiagramRenderer(cacheDirectory, renderingScript, logger).process(diagram)
+    renderer.process(diagram)
   }
 
   def produce(diagram: String): String = {

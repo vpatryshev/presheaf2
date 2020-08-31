@@ -1,7 +1,7 @@
 # Generates pdf and png from xypic; pass file name without extension
 # temporary name is dodoxy.sh; will be renamed back soon
 
-. /home/ubuntu/instance
+#. /home/ubuntu/instance
 
 NAME=$1
 SRC=$NAME.src
@@ -24,7 +24,9 @@ chmod a+r $SRC 2>/dev/null || :
 . ../templates/xy $NAME >$TEX
 chmod a+r $TEX 2>/dev/null || :
 
-/usr/bin/latex $TEX 
+#/Library/TeX/texbin/latex
+#/usr/bin/latex
+latex $TEX 
 rlatex=$?
 
 if [ $rlatex != 0 ]; then 
@@ -34,7 +36,7 @@ fi
 
 echo "ok, ok"
 
-/usr/bin/dvips -E -o $EPS $DVI && /usr/bin/epstopdf $EPS && /usr/bin/dvipng -T tight -o $IMG $DVI
+dvips -E -o $EPS $DVI && epstopdf $EPS && dvipng -T tight -o $IMG $DVI
 r=$?
 
 rm -f $EPS $DVI $NAME.log $NAME.aux

@@ -14,5 +14,5 @@ object BuildInfo {
     case x: Exception => x.getMessage
   }
 
-  def version: String = "1.1.0, build#" + buildNo
+  def version: String = "1.2.0, build#" + buildNo
 }

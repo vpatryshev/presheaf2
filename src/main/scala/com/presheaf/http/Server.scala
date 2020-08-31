@@ -1,25 +1,27 @@
 package com.presheaf.http
 
 import java.io.{ File, FileOutputStream, FileWriter }
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermissions
 import java.util.Date
-import javax.net.ssl.{ SSLContext, SSLParameters }
 
+import javax.net.ssl.{ SSLContext, SSLParameters }
 import com.typesafe.sslconfig.akka.AkkaSSLConfig
 
-import scala.collection.parallel
-import scala.collection.parallel.immutable
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
 import de.heikoseeberger.accessus.Accessus._
 import akka.actor.ActorSystem
-import akka.http.scaladsl.{ HttpsConnectionContext, Http }
+import akka.http.scaladsl.{ Http, HttpsConnectionContext }
 import akka.http.scaladsl.Http.ServerBinding
-import akka.stream.{ TLSClientAuth, ActorMaterializer }
+import akka.stream.{ ActorMaterializer, TLSClientAuth }
 
 import scala.util.{ Failure, Success }
 
 //#main-class
 object Server extends App with Dispatch {
+
+  createWebroot()
 
   val PORT: Int = args.headOption.getOrElse("8721").toInt
   implicit val system: ActorSystem = ActorSystem("Presheaf")
@@ -58,4 +60,12 @@ object Server extends App with Dispatch {
 
   Await.result(system.whenTerminated, Duration.Inf)
 
+  lazy val WEBROOT = new File("webroot")
+  lazy val WELL_KNOWN = new File(WEBROOT, ".well_known")
+
+  def createWebroot(): Unit = {
+    if (!WELL_KNOWN.exists) WELL_KNOWN.mkdirs
+    Files.setPosixFilePermissions(WEBROOT.toPath, PosixFilePermissions.fromString("rwxrwxrwx"))
+    Files.setPosixFilePermissions(WELL_KNOWN.toPath, PosixFilePermissions.fromString("rwxrwxrwx"))
+  }
 }

@@ -8,7 +8,7 @@ lazy val root = (project in file(".")).
   settings(
     inThisBuild(List(
       organization    := "com.presheaf",
-      scalaVersion    := "2.12.4"
+      scalaVersion    := "2.12.8"
     )),
     name := "presheaf2",
     libraryDependencies ++= Seq(
