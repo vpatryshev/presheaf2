@@ -22,11 +22,14 @@ trait Dispatch extends TheyLog { dispatch =>
   // we leave these abstract, since they will be provided by the App
   implicit def system: ActorSystem
 
-  lazy val logger = AkkaLogs(Logging(system, "FULL_LOG"))
+  def setLogging(level: String): Unit =
+    Logging.levelFor(level).foreach(system.eventStream.setLogLevel)
 
-  private val ops = new PresheafOps {
+  lazy val logger: AkkaLogs = AkkaLogs(Logging(system, "FULL_LOG"))
+
+  private val ops: PresheafOps = new PresheafOps {
     val cacheDirectory: File = cacheDir
-    def logger = dispatch.logger
+    def logger: AkkaLogs = dispatch.logger
   }
 
   val staticFiles: Route =
@@ -34,7 +37,7 @@ trait Dispatch extends TheyLog { dispatch =>
       (get & path("robots.txt"))(getFromResource("static/robots.txt")) ~
       (get & path("favicon.ico"))(getFromResource("static/favicon.ico")) ~
       (get & pathPrefix("static"))(getFromResourceDirectory("static")) ~
-      (get)(getFromBrowseableDirectories("webroot"))
+      get(getFromBrowseableDirectories("webroot"))
 
   val cachedFiles: Route =
     (get & pathPrefix("cache"))(getFromDirectory(cacheDir.getAbsolutePath))

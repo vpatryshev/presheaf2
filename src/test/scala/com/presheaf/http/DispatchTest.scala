@@ -6,10 +6,11 @@ import java.io.{ File, FileWriter }
 import java.net.URLEncoder
 
 import akka.actor.ActorRef
+import akka.event.Logging
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.presheaf.ops.{ OS, Res }
+import com.presheaf.ops.{ AkkaLogs, OS, Res }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ Matchers, WordSpec }
 
@@ -17,7 +18,9 @@ import org.scalatest.{ Matchers, WordSpec }
 class DispatchTest extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest
     with Dispatch {
 
-  def stop() = None
+  setLogging("off")
+
+  def stop(): Option[String] = None
 
   private val testFileName: String = "testFile" + System.currentTimeMillis + ".txt"
   val testFile = new File(cacheDir, testFileName)
