@@ -31,76 +31,16 @@ object Server extends App with Dispatch {
   lazy val HttpPort: Int = Option(args).flatMap(_.headOption).getOrElse("8721").toInt
   lazy val HttpsPort: Int = Option(args).flatMap(_.tail.headOption).getOrElse("8714").toInt
   implicit lazy val system: ActorSystem = ActorSystem("Presheaf")
-  lazy val sslConfig = AkkaSSLConfig(system)
-
-  lazy val ks: KeyStore = KeyStore.getInstance("PKCS12")
-  lazy val keystore: InputStream = getClass.getClassLoader.getResourceAsStream("keystore.pkcs12")
-
-  lazy val password: Array[Char] = "akka-https".toCharArray // do not store passwords in code, read them from somewhere safe!
-
-  def ksload(): Unit = {
-    require(keystore != null, "Keystore required!")
-    ks.load(keystore, password)
-  }
-
-  lazy val keyManagerFactory: KeyManagerFactory =
-    {
-      ksload()
-      val kmf: KeyManagerFactory = KeyManagerFactory.getInstance("SunX509")
-      kmf.init(ks, password)
-      kmf
-    }
-
-  lazy val tmf: TrustManagerFactory = {
-    val t = TrustManagerFactory.getInstance("SunX509")
-    t.init(ks)
-    t
-  }
-
-  lazy val sslContext: SSLContext = {
-    val instance = SSLContext.getInstance("TLS")
-    instance.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
-    instance
-  }
-
-  lazy val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
 
   implicit lazy val materializer: ActorMaterializer = ActorMaterializer()
-  lazy val handler: Flow[HttpRequest, HttpResponse, Any] = routes
-
-  import system.dispatcher
-
-  lazy val moreLogging = new RouteOps(routes).withAccessLog(logger.accessLog)
-
-  def runHttp(): Unit = {
-    Http()
-      .bindAndHandle(
-        moreLogging,
-        "0.0.0.0", HttpPort
-      )
-      .onComplete {
-        case Success(ServerBinding(address)) => info(s"Listening on $address")
-        case Failure(cause) => info(s"Can't bind to localhost:$HttpPort: $cause")
-      }
-
-    info(s"Running on port $HttpPort...")
-
-    val fos = new FileWriter(flag)
-    fos.write("started " + new Date())
-    fos.close()
-  }
-  
-  def runHttps(): Unit = {
-    Http().
-      bindAndHandle(Server.handler, "0.0.0.0", HttpsPort, connectionContext = Server.https)(Server.materializer)
-
-    println(s"Server is now online at https://localhost:$HttpsPort/demo\nPress RETURN to stop...")
-
-  }
   
   def run(): Unit = {
-    runHttp()
-    runHttps()
+    HttpServer(HttpPort, routes, logger).run()
+    HttpsServer(HttpsPort, routes, logger).run()
+    
+    val flagFile = new FileWriter(flag)
+    flagFile.write("started " + new Date())
+    flagFile.close()
   }
 
   def stop(): Option[String] = {
