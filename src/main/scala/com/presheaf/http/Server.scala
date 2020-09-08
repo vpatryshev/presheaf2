@@ -1,26 +1,15 @@
 package com.presheaf.http
 
-import java.io.{File, FileOutputStream, FileWriter, InputStream}
+import java.io.{File, FileWriter}
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
-import java.security.{KeyStore, SecureRandom}
 import java.util.Date
 
-import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLParameters, TrustManagerFactory}
-import com.typesafe.sslconfig.akka.AkkaSSLConfig
-
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.Duration
-import de.heikoseeberger.accessus.Accessus._
 import akka.actor.ActorSystem
-import akka.http.scaladsl.{ConnectionContext, Http, HttpsConnectionContext}
-import akka.http.scaladsl.Http.ServerBinding
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
-import akka.http.scaladsl.server.Route
-import akka.stream.scaladsl.Flow
-import akka.stream.{ActorMaterializer, TLSClientAuth}
+import akka.stream.ActorMaterializer
 
-import scala.util.{Failure, Success}
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 //#main-class
 object Server extends App with Dispatch {

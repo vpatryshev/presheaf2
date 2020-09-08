@@ -21,6 +21,7 @@ import akka.stream.scaladsl.Flow
 import akka.stream.{ActorMaterializer, TLSClientAuth}
 import com.presheaf.ops.AkkaLogs
 
+import scala.io.Source
 import scala.util.{Failure, Success}
 
 case class HttpsServer(port: Int, route: Route, logger: AkkaLogs)(
@@ -44,10 +45,15 @@ case class HttpsServer(port: Int, route: Route, logger: AkkaLogs)(
     lazy val sslConfig = AkkaSSLConfig(system)
 
     lazy val ks: KeyStore = KeyStore.getInstance("PKCS12")
-    lazy val keystore: InputStream = getClass.getClassLoader.getResourceAsStream("keystore.pkcs12")
+  lazy val keystore: InputStream = getClass.getClassLoader.getResourceAsStream("keystore.presheaf.pkcs12")
     require(keystore != null, "Keystore required!")
 
-    lazy val password: Array[Char] = "akka-https".toCharArray // do not store passwords in code, read them from somewhere safe!
+  lazy val password: Array[Char] = {
+    val file = new File("password")
+    require(file.canRead, "Oops, could not find 'password' file")
+    val pwd = Source.fromFile(file).mkString.trim
+    pwd.toCharArray
+  }
 
     ks.load(keystore, password)
 
