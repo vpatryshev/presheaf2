@@ -5,9 +5,11 @@ import java.util.Locale
 
 import OS.KindOfOS
 
+import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.io.Source
 import scala.sys.process._
 import scala.util.Try
 import scala.util.matching.Regex
@@ -42,7 +44,7 @@ object OS {
   }
 
   def whoami: String = {
-    run("whoami")._2.toString.trim
+    run("whoami")._2.trim
   }
 
   sealed abstract class KindOfOS(namePattern: String, home: String = "/home/") {
@@ -64,6 +66,7 @@ object OS {
   }
 
   val homeDir: File = {
+    @tailrec
     def findIt(file: File): Option[File] = {
       val ap = file.getAbsolutePath
       ap match {
@@ -84,4 +87,16 @@ object OS {
     fw.close()
   }
 
+  def streamFromFile(path: String): Try[FileInputStream] = Try {
+    val file = new File(path)
+    require(file.canRead, s"Oops, could not read file  '$file'")
+    new FileInputStream(file)
+  }
+
+  def readFromFile(path: String): Try[String] = Try {
+    val file = new File(path)
+    require(file.canRead, s"Oops, could not read file  '$file'")
+    val source = Source.fromFile(file)
+    try source.mkString finally source.close()
+  }
 }

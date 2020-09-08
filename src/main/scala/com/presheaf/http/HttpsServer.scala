@@ -1,27 +1,18 @@
 package com.presheaf.http
 
-import java.io.{ File, FileOutputStream, FileWriter, InputStream }
-import java.nio.file.Files
-import java.nio.file.attribute.PosixFilePermissions
+import java.io.InputStream
 import java.security.{ KeyStore, SecureRandom }
-import java.util.Date
 
-import javax.net.ssl.{ KeyManagerFactory, SSLContext, SSLParameters, TrustManagerFactory }
-import com.typesafe.sslconfig.akka.AkkaSSLConfig
-
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration.Duration
-import de.heikoseeberger.accessus.Accessus._
 import akka.actor.ActorSystem
-import akka.http.scaladsl.{ ConnectionContext, Http, HttpsConnectionContext }
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.{ ConnectionContext, Http, HttpsConnectionContext }
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Flow
-import akka.stream.{ ActorMaterializer, TLSClientAuth }
-import com.presheaf.ops.AkkaLogs
+import com.presheaf.ops.{ AkkaLogs, OS }
+import javax.net.ssl.{ KeyManagerFactory, SSLContext, TrustManagerFactory }
 
-import scala.io.Source
 import scala.util.{ Failure, Success }
 
 case class HttpsServer(port: Int, route: Route, logger: AkkaLogs)(
@@ -43,34 +34,28 @@ case class HttpsServer(port: Int, route: Route, logger: AkkaLogs)(
     logger.info(s"Running HTTPS on port $port...")
   }
 
-  def httpsContext: HttpsConnectionContext = {
-    lazy val sslConfig = AkkaSSLConfig(system)
+  def httpsContext: HttpsConnectionContext = ConnectionContext.https(sslContext)
+
+  private def sslContext = {
+
+    lazy val keystore: InputStream =
+      OS.streamFromFile("keystore.presheaf.pkcs12").get
+
+    lazy val password: Array[Char] =
+      OS.readFromFile("password").get.trim.toCharArray
 
     lazy val ks: KeyStore = KeyStore.getInstance("PKCS12")
-    lazy val keystore: InputStream = getClass.getClassLoader.getResourceAsStream("keystore.presheaf.pkcs12")
-    require(keystore != null, "Keystore required!")
-
-    lazy val password: Array[Char] = {
-      val file = new File("password")
-      require(file.canRead, "Oops, could not find 'password' file")
-      val pwd = Source.fromFile(file).mkString.trim
-      pwd.toCharArray
-    }
-
     ks.load(keystore, password)
 
     lazy val keyManagerFactory: KeyManagerFactory = KeyManagerFactory.getInstance("SunX509")
     keyManagerFactory.init(ks, password)
 
+    val sslContext: SSLContext = SSLContext.getInstance("TLS")
+
     val tmf: TrustManagerFactory = TrustManagerFactory.getInstance("SunX509")
     tmf.init(ks)
 
-    val sslContext: SSLContext = SSLContext.getInstance("TLS")
-
     sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
-
-    val https: HttpsConnectionContext = ConnectionContext.https(sslContext)
-    https
+    sslContext
   }
-
 }
