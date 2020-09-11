@@ -40,9 +40,11 @@ I have a script, `update_from_certbot`, that, essentially, does this:
 export CBDIR=/etc/letsencrypt/live
 export CERTDIR=$CBDIR/presheaf.com
 
-openssl pkcs12 -export -out presheaf2/keystore.presheaf.pkcs12 -inkey $CERTDIR/privkey.pem -in $CERTDIR/cert.pem -certfile $CERTDIR/chain.pem
+openssl pkcs12 -export -out presheaf2/keystore.presheaf.pkcs12 -ixypicnkey $CERTDIR/privkey.pem -in $CERTDIR/cert.pem -certfile $CERTDIR/chain.pem
 
 ./update2
 ```
 
 The script just creates a `pkcs12` based on certbot's credentials, and then it restarts presheaf, via `update2` script.
+
+Got a "B" in ssl labs: https://www.ssllabs.com/ssltest/analyze.html?d=presheaf.com
