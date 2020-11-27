@@ -2,21 +2,24 @@ package com.presheaf.http
 
 //#user-routes-spec
 //#test-top
-import java.io.{ File, FileWriter }
+import java.io.File
 import java.net.URLEncoder
 
-import akka.actor.ActorRef
-import akka.event.Logging
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.Cookie
+import akka.http.scaladsl.model.{StatusCodes, _}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.presheaf.ops.{ AkkaLogs, OS, Res }
+import com.presheaf.ops.{OS, Res, _}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.{Matchers, WordSpec}
+import spray.json.DefaultJsonProtocol._
 
-//#set-up
+// @see https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/marshalling-directives/entity.html
 class DispatchTest extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest
     with Dispatch {
+  
+  val version = "1.3.2, build#0040 Wed Sep 16 08:57:59 PDT 2020"
 
   setLogging("off")
 
@@ -38,7 +41,8 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
   }
 
   "Dispatch" should {
-    "return index.thml" in {
+
+    "return index.html" in {
       val request = HttpRequest(uri = "/")
 
       request ~> routes ~> check {
@@ -83,7 +87,7 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
         contentType should ===(ContentTypes.`text/plain(UTF-8)`)
 
         entityAs[String] should ===(
-          "{\"id\":\"d1t692m6s575z36353t6q4w294y69696s\",\"source\":\"U \\\\\\\\ar@/_/[ddr]_y \\\\\\\\ar@/^/[drr]^x\\\\n  \\\\\\\\ar@{.>}[dr]|-{(x,y)} \\\\\\\\\\\\\\\\\\\\n  & X \\\\\\\\times_Z Y \\\\\\\\ar[d]^q \\\\\\\\ar[r]_p & X \\\\\\\\ar[d]_f  \\\\\\\\\\\\\\\\\\\\n  & Y \\\\\\\\ar[r]^g & Z\",\"version\":\"1.2.0, build#0033 Tue Aug 25 08:18:55 PDT 2020\"}"
+          s"""{"id":"d1t692m6s575z36353t6q4w294y69696s","source":"U \\\\\\\\ar@/_/[ddr]_y \\\\\\\\ar@/^/[drr]^x\\\\n  \\\\\\\\ar@{.>}[dr]|-{(x,y)} \\\\\\\\\\\\\\\\\\\\n  & X \\\\\\\\times_Z Y \\\\\\\\ar[d]^q \\\\\\\\ar[r]_p & X \\\\\\\\ar[d]_f  \\\\\\\\\\\\\\\\\\\\n  & Y \\\\\\\\ar[r]^g & Z\","version":"$version"}"""
         )
       }
     }
@@ -98,7 +102,49 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
 
         entityAs[String] should ===(text)
       }
+    }
 
+    //#testing-post
+    "be able to receive history (POST /history) without cookies" in {
+      val entry1 = HistoryEntry("Kapi", 42, None)
+      val historyToSend = Map("this_is_an_id" -> entry1)
+      val historyEntity: MessageEntity = Marshal(historyToSend).to[MessageEntity].futureValue // futureValue is from ScalaFutures
+
+      // using the RequestBuilding DSL:
+      val request = Post("/history").withEntity(historyEntity)
+
+      request ~> routes ~> check {
+        status should ===(StatusCodes.OK)
+
+        // we expect the response to be json:
+// TEMPORARY!        contentType should ===(ContentTypes.`application/json`)
+
+        // and we know what message we're expecting back:
+        entityAs[String] should ===("got 1 record(s)")
+      }
+    }
+    //#testing-post
+
+  }
+  //#testing-post
+  "be able to receive history (POST /history) with cookies" in {
+    val entry1 = HistoryEntry("Kapi", 42, None)
+    val historyToSend = Map("this_is_an_id" -> entry1)
+    val historyEntity: MessageEntity = Marshal(historyToSend).to[MessageEntity].futureValue // futureValue is from ScalaFutures
+
+    // using the RequestBuilding DSL:
+    val request = Post("/history").withEntity(historyEntity)
+    //
+
+    request ~> Cookie("id" -> "4087688721", "trash" -> "dumpster") ~> routes ~> check {
+      status should ===(StatusCodes.OK)
+      responseAs[String] shouldEqual "got 1 record(s) from id=4087688721"
+      // we expect the response to be json:
+      // TEMPORARY!        contentType should ===(ContentTypes.`application/json`)
+
+      // and we know what message we're expecting back:
+      entityAs[String] should ===("got 1 record(s) from id=4087688721")
     }
   }
+  //#testing-post
 }

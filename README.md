@@ -37,6 +37,7 @@ Then I deployed presheaf to the instance (`build` and `deploy.sh` scripts).
 #### Configuring In The Cloud
 I have a script, `update_from_certbot`, that, essentially, does this:
 ```shell script
+# Run these under sudo
 export CBDIR=/etc/letsencrypt/live
 export CERTDIR=$CBDIR/presheaf.com
 
@@ -48,3 +49,9 @@ openssl pkcs12 -export -out presheaf2/keystore.presheaf.pkcs12 -ixypicnkey $CERT
 The script just creates a `pkcs12` based on certbot's credentials, and then it restarts presheaf, via `update2` script.
 
 Got a "B" in ssl labs: https://www.ssllabs.com/ssltest/analyze.html?d=presheaf.com
+
+## More details (e.g. cronjob?)
+[see here](https://certbot.eff.org/lets-encrypt/ubuntufocal-other)
+
+### TODO
+[exceeder, diagrams in JS](https://github.com/exceeder/presheaf/blob/master/public/js/xypic.js)
