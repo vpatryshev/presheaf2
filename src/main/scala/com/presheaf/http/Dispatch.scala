@@ -6,15 +6,17 @@ import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.headers.HttpCookie
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.presheaf.ops.OS._
+import com.presheaf.ops.PresheafOps.md5
 import com.presheaf.ops._
 import spray.json.DefaultJsonProtocol._
-import spray.json.JsValue
+import spray.json.{JsValue, RootJsonFormat}
 
 trait Dispatch extends TheyLog { dispatch =>
-  
+
   val cacheDir: File = List(new File("."), new File(".."), homeDir) map {
     dir => new File(dir, "diagrams").getCanonicalFile
   } find (_.isDirectory) getOrElse {
@@ -27,10 +29,10 @@ trait Dispatch extends TheyLog { dispatch =>
   implicit def system: ActorSystem
 
   // formats for unmarshalling and marshalling
-  implicit val entryFormat = jsonFormat3(HistoryEntry)
-  implicit val historyFormat = jsonFormat1(History)
-//
-//  implicit val executionContext = system.dispatcher
+  implicit val entryFormat: RootJsonFormat[HistoryEntry] = jsonFormat3(HistoryEntry)
+  implicit val historyFormat: RootJsonFormat[History] = jsonFormat1(History)
+  //
+  //  implicit val executionContext = system.dispatcher
 
   def setLogging(level: String): Unit =
     Logging.levelFor(level).foreach(system.eventStream.setLogLevel)
@@ -75,15 +77,27 @@ trait Dispatch extends TheyLog { dispatch =>
       entity(as[Map[String, HistoryEntry]]) { history =>
         optionalCookie("id") {
           case Some(id) =>
-            info(s"received from $id:\n${history}")
+            info(s"received from $id:\n$history")
             complete(StatusCodes.OK, s"got ${history.size} record(s) from $id")
           case None =>
-            info(s"received:\n${history}")
-            complete(StatusCodes.OK, s"got ${history.size} record(s)")
+            extractClientIP { ip =>
+              val ips = ip.toOption.map(_.getHostAddress).getOrElse("unknown")
+              info(s"received:\n$history from  ip=$ips from $ip")
+              setCookie(HttpCookie("id", value = ip2id(ips))) {
+                complete(StatusCodes.OK, s"got ${history.size} record(s)")
+              }
+            }
         }
       }
     }
   }
 
   lazy val routes: Route = staticFiles ~ cachedFiles ~ service
+
+  /**
+   * Create a user id based on use's ip
+   * @param ip user's ip (or "unknown")
+   * @return an id; starts with '0' which is a prefix for this kind of id.
+   */
+  def ip2id(ip: String): String = "0" + md5(ip)
 }

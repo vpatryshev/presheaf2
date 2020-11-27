@@ -2,6 +2,8 @@ package com.presheaf.ops
 
 import java.io.{ File, FileOutputStream }
 
+import PresheafOps._
+
 import scala.io.Source
 import scala.util.{ Failure, Success, Try }
 
@@ -49,7 +51,7 @@ case class DiagramRenderer(cache: File, script: String, logger: ILog) extends Th
     }
   }
 
-  def idFor(tex: String): String = "d" + DiagramRenderer.md5(tex)
+  def idFor(tex: String): String = "d" + md5(tex)
 
   def diagramFile(name: String): File = {
     new File(cache, name)
@@ -69,13 +71,17 @@ case class DiagramRenderer(cache: File, script: String, logger: ILog) extends Th
   }
 
   def upsert(file: File, content: String): Try[Any] = {
-    Try {
-      Source.fromFile(file).getLines().mkString("\n")
+    val src: Source = Source.fromFile(file)
+    
+    val result = Try {
+      src.getLines.mkString("\n")
     } filter (content ==) orElse Try {
       val out = new FileOutputStream(file)
       out.write(content.getBytes)
       out.close()
     }
+    src.close()
+    result
   }
 
   def doWithScript(diagram: Diagram): Diagram = {
@@ -98,21 +104,6 @@ case class DiagramRenderer(cache: File, script: String, logger: ILog) extends Th
             diagram.copy(log = log)
         }
     }
-  }
-
-}
-
-object DiagramRenderer {
-
-  import java.security._
-
-  private val digest = MessageDigest.getInstance("MD5")
-  digest.reset()
-
-  def encode(b: Byte): String = java.lang.Integer.toString(b & 0xff, 36)
-
-  def md5(message: String): String = {
-    ("" /: digest.digest(message.getBytes("UTF-8")))(_ + encode(_))
   }
 
 }

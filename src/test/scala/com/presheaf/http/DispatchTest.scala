@@ -19,7 +19,7 @@ import spray.json.DefaultJsonProtocol._
 class DispatchTest extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest
     with Dispatch {
   
-  val version = "1.3.2, build#0040 Wed Sep 16 08:57:59 PDT 2020"
+  val version = "2.0.0, build#0042 Fri Nov 27 12:31:15 PST 2020"
 
   setLogging("off")
 

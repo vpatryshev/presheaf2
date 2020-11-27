@@ -1,5 +1,6 @@
 /**
  * Functionality for presheaf.com
+ * @see https://www.w3schools.com/js/js_cookies.asp
  */
 const _ = id => document.getElementById(id) 
 

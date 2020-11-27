@@ -48,7 +48,7 @@ trait PresheafOps extends TheyLog {
     }
   }
 
-  lazy val renderer = DiagramRenderer(cacheDirectory, renderingScript, logger)
+  lazy val renderer: DiagramRenderer = DiagramRenderer(cacheDirectory, renderingScript, logger)
 
   def process(diagram: String): Diagram = {
     require(diagram != null && !diagram.isEmpty, "no diagram to render")
@@ -70,6 +70,20 @@ trait PresheafOps extends TheyLog {
       }
     )
     out
+  }
+
+}
+
+object PresheafOps {
+  import java.security._
+
+  private val digest = MessageDigest.getInstance("MD5")
+  digest.reset()
+
+  def encode(b: Byte): String = java.lang.Integer.toString(b & 0xff, 36)
+
+  def md5(message: String): String = {
+    ("" /: digest.digest(message.getBytes("UTF-8")))(_ + encode(_))
   }
 
 }
