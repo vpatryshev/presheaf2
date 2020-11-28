@@ -14,6 +14,7 @@ import com.presheaf.ops.{OS, Res, _}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
 import spray.json.DefaultJsonProtocol._
+import Storage._
 
 // @see https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/marshalling-directives/entity.html
 class DispatchTest extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest
@@ -106,7 +107,7 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
 
     //#testing-post
     "be able to receive history (POST /history) without cookies" in {
-      val entry1 = HistoryEntry("Kapi", 42, None)
+      val entry1 = HistoryRecord("Kapi", 42, None)
       val historyToSend = Map("this_is_an_id" -> entry1)
       val historyEntity: MessageEntity = Marshal(historyToSend).to[MessageEntity].futureValue // futureValue is from ScalaFutures
 
@@ -120,7 +121,7 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
 // TEMPORARY!        contentType should ===(ContentTypes.`application/json`)
 
         // and we know what message we're expecting back:
-        entityAs[String] should ===("got 1 record(s)")
+        entityAs[String] should ===("got 1 record(s) from 04t42t2o202r2u113s92d1m1p504a22")
       }
     }
     //#testing-post
@@ -128,7 +129,7 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
   }
   //#testing-post
   "be able to receive history (POST /history) with cookies" in {
-    val entry1 = HistoryEntry("Kapi", 42, None)
+    val entry1 = HistoryRecord("Kapi", 42, None)
     val historyToSend = Map("this_is_an_id" -> entry1)
     val historyEntity: MessageEntity = Marshal(historyToSend).to[MessageEntity].futureValue // futureValue is from ScalaFutures
 
@@ -138,12 +139,12 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
 
     request ~> Cookie("id" -> "4087688721", "trash" -> "dumpster") ~> routes ~> check {
       status should ===(StatusCodes.OK)
-      responseAs[String] shouldEqual "got 1 record(s) from id=4087688721"
+      responseAs[String] shouldEqual "got 1 record(s) from 4087688721"
       // we expect the response to be json:
       // TEMPORARY!        contentType should ===(ContentTypes.`application/json`)
 
       // and we know what message we're expecting back:
-      entityAs[String] should ===("got 1 record(s) from id=4087688721")
+      entityAs[String] should ===("got 1 record(s) from 4087688721")
     }
   }
   //#testing-post

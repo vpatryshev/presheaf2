@@ -3,6 +3,7 @@ package com.presheaf.ops
 import java.io.{ File, FileOutputStream }
 
 import PresheafOps._
+import com.presheaf.http.Storage._
 
 import scala.io.Source
 import scala.util.{ Failure, Success, Try }
@@ -67,20 +68,6 @@ case class DiagramRenderer(cache: File, script: String, logger: ILog) extends Th
       if (diagram.inCache) diagram
       else doWithScript(diagram)
     info(s"Renderer.process: $result.")
-    result
-  }
-
-  def upsert(file: File, content: String): Try[Any] = {
-    val src: Source = Source.fromFile(file)
-    
-    val result = Try {
-      src.getLines.mkString("\n")
-    } filter (content ==) orElse Try {
-      val out = new FileOutputStream(file)
-      out.write(content.getBytes)
-      out.close()
-    }
-    src.close()
     result
   }
 

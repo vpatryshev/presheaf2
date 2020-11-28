@@ -2,12 +2,13 @@ package com.presheaf.ops
 
 import java.io._
 
+import com.presheaf.http.Storage._
+
 /**
  * Presheaf operations
  */
 
 trait PresheafOps extends TheyLog {
-  val cacheDirectory: File
   val renderingScript: String = findScript(
     "presheaf.sh",
     s"${OS.homeDir}/presheaf.sh"
@@ -48,7 +49,7 @@ trait PresheafOps extends TheyLog {
     }
   }
 
-  lazy val renderer: DiagramRenderer = DiagramRenderer(cacheDirectory, renderingScript, logger)
+  lazy val renderer: DiagramRenderer = DiagramRenderer(cacheDir, renderingScript, logger)
 
   def process(diagram: String): Diagram = {
     require(diagram != null && !diagram.isEmpty, "no diagram to render")

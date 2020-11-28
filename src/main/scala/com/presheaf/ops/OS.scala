@@ -93,8 +93,9 @@ object OS {
     new FileInputStream(file)
   }
 
-  def readFromFile(path: String): Try[String] = Try {
-    val file = new File(path)
+  def readFromFile(path: String): Try[String] = readFromFile(new File(path))
+
+  def readFromFile(file: File): Try[String] = Try {
     require(file.canRead, s"Oops, could not read file  '$file'")
     val source = Source.fromFile(file)
     try source.mkString finally source.close()
