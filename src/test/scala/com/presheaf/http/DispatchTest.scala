@@ -8,18 +8,18 @@ import java.net.URLEncoder
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.headers.Cookie
-import akka.http.scaladsl.model.{StatusCodes, _}
+import akka.http.scaladsl.model.{ StatusCodes, _ }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.presheaf.ops.{OS, Res, _}
+import com.presheaf.ops.{ OS, Res, _ }
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{ Matchers, WordSpec }
 import spray.json.DefaultJsonProtocol._
 import Storage._
 
 // @see https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/marshalling-directives/entity.html
 class DispatchTest extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest
     with Dispatch {
-  
+
   val version = "2.0.0, build#0042 Fri Nov 27 12:31:15 PST 2020"
 
   setLogging("off")
@@ -118,10 +118,10 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
         status should ===(StatusCodes.OK)
 
         // we expect the response to be json:
-// TEMPORARY!        contentType should ===(ContentTypes.`application/json`)
+        // TEMPORARY!        contentType should ===(ContentTypes.`application/json`)
 
         // and we know what message we're expecting back:
-        entityAs[String] should ===("got 1 record(s) from 04t42t2o202r2u113s92d1m1p504a22")
+        entityAs[String] should ===("""{"entries":{"this_is_an_id":{"text":"Kapi","date":42}}}""")
       }
     }
     //#testing-post
@@ -139,12 +139,12 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
 
     request ~> Cookie("id" -> "4087688721", "trash" -> "dumpster") ~> routes ~> check {
       status should ===(StatusCodes.OK)
-      responseAs[String] shouldEqual "got 1 record(s) from 4087688721"
+      responseAs[String] shouldEqual """{"entries":{"this_is_an_id":{"text":"Kapi","date":42}}}"""
       // we expect the response to be json:
       // TEMPORARY!        contentType should ===(ContentTypes.`application/json`)
 
       // and we know what message we're expecting back:
-      entityAs[String] should ===("got 1 record(s) from 4087688721")
+      entityAs[String] should ===("""{"entries":{"this_is_an_id":{"text":"Kapi","date":42}}}""")
     }
   }
   //#testing-post

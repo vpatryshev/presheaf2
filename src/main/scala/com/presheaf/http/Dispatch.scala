@@ -5,7 +5,7 @@ import java.io.File
 import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.{RemoteAddress, StatusCodes}
+import akka.http.scaladsl.model.{ RemoteAddress, StatusCodes }
 import akka.http.scaladsl.model.headers.HttpCookie
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
@@ -13,7 +13,7 @@ import com.presheaf.ops.OS._
 import com.presheaf.ops.PresheafOps.md5
 import com.presheaf.ops._
 import spray.json.DefaultJsonProtocol._
-import spray.json.{JsValue, RootJsonFormat}
+import spray.json.{ JsValue, RootJsonFormat }
 import Storage._
 
 trait Dispatch extends TheyLog { dispatch =>
@@ -26,7 +26,7 @@ trait Dispatch extends TheyLog { dispatch =>
   // formats for unmarshalling and marshalling
   implicit val recordFormat: RootJsonFormat[HistoryRecord] = jsonFormat3(HistoryRecord)
   //  implicit val executionContext = system.dispatcher
-  
+
   def setLogging(level: String): Unit =
     Logging.levelFor(level).foreach(system.eventStream.setLogLevel)
 
@@ -68,11 +68,11 @@ trait Dispatch extends TheyLog { dispatch =>
     path("history") {
       entity(as[Map[String, HistoryRecord]]) { historyMap =>
         extractClientIP { ip =>
-        val ips = ip.toOption.map(_.getHostAddress).getOrElse("unknown")
-        val history = History(historyMap)
-        optionalCookie("id") {
+          val ips = ip.toOption.map(_.getHostAddress).getOrElse("unknown")
+          val history = History(historyMap)
+          optionalCookie("id") {
             case Some(id) => completeWith(ips, history, id.value)
-            case None     => completeWith(ips, history, ip2id(ips))
+            case None => completeWith(ips, history, ip2id(ips))
           }
         }
       }
@@ -81,9 +81,9 @@ trait Dispatch extends TheyLog { dispatch =>
 
   private def completeWith(ip: String, history: History, id: String) = {
     info(s"received:\n$history from  ip=$ip, id=$id")
-    history.syncup(id)
+    val newHistory = history.sync(id)
     setCookie(HttpCookie("id", value = id)) {
-      complete(StatusCodes.OK, s"got ${history.size} record(s) from $id")
+      complete(StatusCodes.OK, newHistory)
     }
   }
 

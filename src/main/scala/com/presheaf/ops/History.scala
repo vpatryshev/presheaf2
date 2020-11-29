@@ -2,31 +2,39 @@ package com.presheaf.ops
 import com.presheaf.http.Storage._
 
 case class HistoryRecord(
-  text: String,
-  date: Long,
-  deleted: Option[Long]
+    text: String,
+    date: Long,
+    deleted: Option[Long]
 ) {
+  def isDeleted: Boolean = deleted.isDefined
+
   def timestamp: Long = Math.max(deleted getOrElse Long.MinValue, date) // won't work after 01/19/2038
-  
+
   def max(that: HistoryRecord): HistoryRecord =
     if (timestamp > that.timestamp) this else that
 }
 
-object Inf extends HistoryRecord("-\\infty", Long.MinValue, None)
+object HistoryRecord0 extends HistoryRecord("-\\infty", Long.MinValue, None)
 
-final case class History(entries: Map[String, HistoryRecord]) {
-  def entryAt(key: String): HistoryRecord = entries.getOrElse(key, Inf)
-  
-  def syncup(id: String): History = readFor(id) map syncup getOrElse this
+case class History(entries: Map[String, HistoryRecord]) {
+  def apply(key: String): HistoryRecord = entries.getOrElse(key, HistoryRecord0)
 
-  def syncup(other: History): History = {
-    val allkeys = entries.keySet ++ other.entries.keySet
-    val newEntries = allkeys map {
-      (key: String) => key -> (entryAt(key) max other.entryAt(key))
+  def sync(id: String): History = {
+    val inStore = readFor(id) getOrElse this
+    writeFor(id)(inStore updatedFrom this)
+    this updatedFrom inStore
+  }
+
+  def updatedFrom(other: History): History = {
+    val keysToReport = entries.keySet ++ other.entries.keySet.filterNot(other(_).isDeleted)
+    val newEntries = keysToReport map {
+      (key: String) => key -> (this(key) max other(key))
     } toMap
-    
+
     History(newEntries)
   }
-  
+
   def size: Int = entries.size
 }
+
+object EmptyHistory extends History(Map.empty[String, HistoryRecord])
