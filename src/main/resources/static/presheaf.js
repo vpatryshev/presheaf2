@@ -17,6 +17,8 @@ const error = msg => {
   hideResults()
 }
 
+const isSecure = window.location.href.startsWith("https")
+
 const srcRef = id => `cache/${id}.src`
 const pdfRef = id => `cache/${id}.pdf`
 const imgRef = id => `cache/${id}.png`
@@ -105,8 +107,17 @@ function getHistory() {
 var myHistory = getHistory()
 
 const saveHistory = () => {
+  try {
+    httpPost("history", localStorage.history, skip,
+    text => { 
+      myHistory = JSON.parse(text)
+      showHistory()
+    },
+    err  => { postError = err })
+  } catch (err) {
+    postError += '\n' + err
+  }
   localStorage.history = JSON.stringify(myHistory)
-  post("history", localStorage.history)
 }
 
 function touch(id) {
@@ -176,6 +187,7 @@ function fillHistoryElement(i, id) {
         el.width = Math.min(100, this.width)
         show(`h${key}`)
         show(key)
+        if (!isSecure) show("httpswarning")
       }
     }
   }
@@ -209,15 +221,6 @@ function httpGet(uri, onwait, onload, onerror) {
 
 var postResponse = undefined
 var postError = undefined
-
-function post(uri, data) {
-  try {
-      httpPost(uri, localStorage.history, skip,
-      text => { postResponse = text }, err => { postError = err })
-  } catch (err) {
-      postError += '\n' + err
-  }
-}
 
 function httpPost(uri, data, onwait, onload, onerror) {
   var xhr = new XMLHttpRequest()
@@ -303,13 +306,6 @@ function setListeners(image, id) {
 }
 
 function fillIn() {
-  httpGet("dws?in=X",
-      skip,
-      text => {
-        _("d_version").innerHTML = eval(`(${text})`).version
-      },
-      error
-  )
   httpGet("dws?op=samples",
       function() {},
       function(text) {
@@ -353,6 +349,7 @@ redrawHistory = () => {
 window.onload = function() {
   fillIn()
   redrawHistory()
+  saveHistory()
   var id = getArg('d')
   if (id) justShow(id)
 }

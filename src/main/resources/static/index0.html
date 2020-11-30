@@ -9,7 +9,7 @@
 <body>
 <div id="fullBody">
     <script language="javascript" src="static/md5.js"></script>
-    <script language="javascript" src="static/presheaf.js"></script>
+    <script language="javascript" src="static/presheaf.js?version=__VERSION_NUMBER__"></script>
     <div id="titlebar">
         <table width="100%">
             <tr>
@@ -79,7 +79,14 @@
             <a href="http://paws.wcu.edu/tsfoguel/tikzpgfmanual.pdf">tikz manual</a>,<br/>
             <a href="http://www.texample.net/tikz/examples/">tikz examples</a>,
             .<br/><br/><br/>
-            <font size="-2">Ver. <span id="d_version">h.z.</span> Copyright (c) 2010-3010, Vlad Patryshev.</font><br/>
+            <div id="httpswarning" style="width=60%;background-color:#FFFFE0;padding:10px;border:2px solid orange;visibility: hidden"><i>
+                &nbsp;This is a non-secure, http-based page.<br/>
+                I suggest to switch to <a href="https://presheaf.com">https://presheaf.com</a>
+                and enjoy the secure environment.<br/>
+                Your current rendering history will be available there.<br/>
+                Let me know if something does not work for you.</i>
+            </div><br/>
+            <font size="-2">Ver. <span>__VERSION_NUMBER__ __TIMESTAMP__</span> Copyright (c) 2010-3010, Vlad Patryshev.</font><br/>
 
         </div>
 

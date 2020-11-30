@@ -70,20 +70,22 @@ trait Dispatch extends TheyLog { dispatch =>
         extractClientIP { ip =>
           val ips = ip.toOption.map(_.getHostAddress).getOrElse("unknown")
           val history = History(historyMap)
+          val completeWith = id => completeHistory(ips, history, id)
+
           optionalCookie("id") {
-            case Some(id) => completeWith(ips, history, id.value)
-            case None => completeWith(ips, history, ip2id(ips))
+            case Some(id) => completeWith(id.value)
+            case None => completeWith(ip2id(ips))
           }
         }
       }
     }
   }
 
-  private def completeWith(ip: String, history: History, id: String) = {
-    info(s"received:\n$history from  ip=$ip, id=$id")
-    val newHistory = history.sync(id)
+  private def completeHistory(ip: String, history: History, id: String) = {
+    val newHistory = history.sync(id)(this)
+    info(s"received ${history.size} entries from  ip=$ip, id=$id")
     setCookie(HttpCookie("id", value = id)) {
-      complete(StatusCodes.OK, newHistory)
+      complete(StatusCodes.OK, newHistory.entries)
     }
   }
 

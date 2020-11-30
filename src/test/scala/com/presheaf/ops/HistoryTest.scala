@@ -1,11 +1,14 @@
 package com.presheaf.ops
 
-import com.presheaf.http.Storage.{ historyFile, readFor }
+import com.presheaf.http.Storage.{historyFile, readFor}
+import com.presheaf.ops.HistoryTestData.{initFromClient, initInDB, resultInDB, resultToClient}
 import org.specs2.mutable._
 
 import scala.util.Success
 
 class HistoryTest extends Specification {
+
+  Time.now = () => 0L
 
   def vr(content: String): HistoryRecord = {
     val time = content.charAt(0) - 'a' + 1
@@ -115,6 +118,15 @@ class HistoryTest extends Specification {
       (h3a sync "h3") === history(r1, r3, r4, r5)
       readFor("h3") === Success(history(r1, r2, r3, r5))
       readFor("h3a") === Success(h3a)
+    }
+    
+    "sync big 1" in {
+      historyFile("big1").delete()
+      historyFile("big1").deleteOnExit()
+      val big1 = initInDB sync "big1"
+      big1 === initInDB
+      val big2 = initFromClient sync "big1"
+      resultToClient === big2
     }
   }
 }

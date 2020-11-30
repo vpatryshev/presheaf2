@@ -53,7 +53,7 @@ trait PresheafOps extends TheyLog {
 
   def process(diagram: String): Diagram = {
     require(diagram != null && !diagram.isEmpty, "no diagram to render")
-    info("Rendering diagram \"" + diagram + "\"")
+    info(s"""Rendering diagram "$diagram"""")
     renderer.process(diagram)
   }
 

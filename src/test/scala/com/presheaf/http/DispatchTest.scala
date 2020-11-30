@@ -20,7 +20,7 @@ import Storage._
 class DispatchTest extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest
     with Dispatch {
 
-  val version = "2.0.0, build#0042 Fri Nov 27 12:31:15 PST 2020"
+  val version = "2.0.0, build#0064 Sun Nov 29 11:58:18 PST 2020"
 
   setLogging("off")
 
@@ -49,9 +49,10 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
       request ~> routes ~> check {
         status should ===(StatusCodes.OK)
         contentType should ===(ContentTypes.`text/html(UTF-8)`)
-        val indexHtml = Res.string("/static/index.html")
+        val expected = Res.string("/static/index.html")
+        val actual = entityAs[String].trim
 
-        entityAs[String] should ===(indexHtml)
+        actual should ===(expected)
       }
     }
     "return privacy.html" in {
@@ -121,7 +122,7 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
         // TEMPORARY!        contentType should ===(ContentTypes.`application/json`)
 
         // and we know what message we're expecting back:
-        entityAs[String] should ===("""{"entries":{"this_is_an_id":{"text":"Kapi","date":42}}}""")
+        entityAs[String] should ===("""{"this_is_an_id":{"text":"Kapi","date":42}}""")
       }
     }
     //#testing-post
@@ -139,12 +140,12 @@ class DispatchTest extends WordSpec with Matchers with ScalaFutures with Scalate
 
     request ~> Cookie("id" -> "4087688721", "trash" -> "dumpster") ~> routes ~> check {
       status should ===(StatusCodes.OK)
-      responseAs[String] shouldEqual """{"entries":{"this_is_an_id":{"text":"Kapi","date":42}}}"""
+      responseAs[String] shouldEqual """{"this_is_an_id":{"text":"Kapi","date":42}}"""
       // we expect the response to be json:
       // TEMPORARY!        contentType should ===(ContentTypes.`application/json`)
 
       // and we know what message we're expecting back:
-      entityAs[String] should ===("""{"entries":{"this_is_an_id":{"text":"Kapi","date":42}}}""")
+      entityAs[String] should ===("""{"this_is_an_id":{"text":"Kapi","date":42}}""")
     }
   }
   //#testing-post

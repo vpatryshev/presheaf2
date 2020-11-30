@@ -10,10 +10,18 @@ trait ILog {
 }
 
 trait TheyLog extends ILog {
+  private lazy val bn = BuildInfo.buildNo.split(" ").head
   def logger: ILog
   def debug(x: => Any): Unit = logger.debug(x)
-  def info(x: => Any): Unit = logger.info(x)
+  def info(x: => Any): Unit = logger.info(s"[#$bn] $x")
   def error(x: => Any): Unit = logger.error(x)
+}
+
+object SilentBob extends TheyLog {
+  override def logger: ILog = null
+  override def debug(x: => Any): Unit = ()
+  override def info(x: => Any): Unit = ()
+  override def error(x: => Any): Unit = ()
 }
 
 import akka.Done
