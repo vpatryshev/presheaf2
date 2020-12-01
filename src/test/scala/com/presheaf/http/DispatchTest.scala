@@ -20,7 +20,7 @@ import Storage._
 class DispatchTest extends WordSpec with Matchers with ScalaFutures with ScalatestRouteTest
     with Dispatch {
 
-  val version = "2.0.0, build#0064 Sun Nov 29 11:58:18 PST 2020"
+  val version = "2.0.1, build#0072 Mon Nov 30 21:22:59 PST 2020"
 
   setLogging("off")
 

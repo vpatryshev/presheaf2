@@ -17,7 +17,7 @@ class HistoryTest extends Specification {
 
   def dr(content: String): HistoryRecord = {
     val time = content.charAt(0) - 'a' + 2
-    HistoryRecord(content, time - 1, Some(time))
+    HistoryRecord(content, time, Some(time))
   }
 
   def history(records: HistoryRecord*): History = {

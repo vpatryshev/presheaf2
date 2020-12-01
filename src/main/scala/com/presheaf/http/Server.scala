@@ -15,7 +15,7 @@ import scala.concurrent.duration.Duration
 object Server extends App with Dispatch {
 
   createWebroot()
-  lazy val flag = new File("presheaf2.flag")
+  lazy val flag = new File("presheaf2.running")
 
   lazy val HttpPort: Int = Option(args).flatMap(_.headOption).getOrElse("8721").toInt
   lazy val HttpsPort: Int = Option(args).flatMap(_.tail.headOption).getOrElse("8714").toInt
@@ -34,6 +34,7 @@ object Server extends App with Dispatch {
 
   def stop(): Option[String] = {
     if (flag.exists()) {
+      info(s"flag is here: $flag")
       None
     } else {
       info("Shutting down...")

@@ -124,7 +124,6 @@ function touch(id) {
 //  console.log("touching " + id)
   myHistory[id].date = new Date().getTime()
   saveHistory()
-  showHistory()
 }
 
 function choose(i) {
@@ -136,19 +135,16 @@ function choose(i) {
 const addToHistory = (id, text) => {
   if (!myHistory[id]) myHistory[id] = {}
   myHistory[id].text = text
-  touch(id)
   delete myHistory[id].deleted
+  touch(id)
   console.log(`added ${id}=>${JSON.stringify(myHistory[id])}`)
-  saveHistory()
-  showHistory()
 }
 
 deleteFromHistory = i => {
   const id = idNumber(i)
   console.log(`Will delete row ${i}=>${id}`)
   myHistory[id].deleted = new Date().getTime()
-  saveHistory()
-  showHistory()
+  touch(id)
 }
 
 function showHistory() {

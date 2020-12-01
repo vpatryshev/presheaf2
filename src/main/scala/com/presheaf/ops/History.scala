@@ -8,7 +8,7 @@ case class HistoryRecord(
 ) {
   def isDeleted: Boolean = deleted.isDefined
 
-  def timestamp: Long = Math.max(deleted getOrElse Long.MinValue, date) // won't work after 01/19/2038
+  def timestamp: Long = date
 
   def max(that: HistoryRecord): HistoryRecord =
     if (timestamp > that.timestamp) this else that
@@ -41,7 +41,7 @@ case class History(entries: Map[String, HistoryRecord]) {
     } toMap
     val yearago = Time.now() - 365 * 24 * 3600 * 1000
     History(newEntries.filter {
-      case (k, v) => v.deleted.getOrElse(Long.MaxValue) > yearago
+      case (k, v) => !v.isDeleted || v.date > yearago
     })
   }
 
