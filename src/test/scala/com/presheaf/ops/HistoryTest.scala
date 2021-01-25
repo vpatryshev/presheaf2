@@ -1,7 +1,7 @@
 package com.presheaf.ops
 
-import com.presheaf.http.Storage.{historyFile, readFor}
-import com.presheaf.ops.HistoryTestData.{initFromClient, initInDB, resultInDB, resultToClient}
+import com.presheaf.http.Storage.{ historyFile, readFor }
+import com.presheaf.ops.HistoryTestData.{ initFromClient, initInDB, resultInDB, resultToClient }
 import org.specs2.mutable._
 
 import scala.util.Success
@@ -119,7 +119,7 @@ class HistoryTest extends Specification {
       readFor("h3") === Success(history(r1, r2, r3, r5))
       readFor("h3a") === Success(h3a)
     }
-    
+
     "sync big 1" in {
       historyFile("big1").delete()
       historyFile("big1").deleteOnExit()

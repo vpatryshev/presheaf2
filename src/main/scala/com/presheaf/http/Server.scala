@@ -33,7 +33,8 @@ object Server extends App with Dispatch {
   }
 
   def stop(): Option[String] = {
-    if (flag.exists()) {
+    info("Stop called.")
+    if (flag.exists) {
       info(s"flag is here: $flag")
       None
     } else {
