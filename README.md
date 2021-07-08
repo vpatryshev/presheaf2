@@ -2,11 +2,13 @@
 A totally new version of presheaf.com - based on akkaHTTP and using HTTPS.
 See application.conf which specifies that yes, we need the client ip logged.
 
-Now runs as https://presheaf.com
+Used to run as https://presheaf.com
+Currently, temporarily down; I'm moving it from a standalone web app in akka-http in linux to k8s, and will deploy it on digitalocean.
+Just tired of amazon tricks.
 
-https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Instances:sort=instanceState
+Old amazon console (there's nothing there now): https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#Instances:sort=instanceState
 
-### How I solved https problems
+### How I was solving https problems
 
 #### Using `certbot` aka `lets
 
